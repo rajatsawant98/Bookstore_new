@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Book</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .delete-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #ff0000;
+            color: white;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #cc0000;
+        }
+        .message {
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="delete-container">
+        <h1>Delete Book</h1>
+        <form id="deleteBookForm">
+            <label for="bookName">Book Name:</label>
+            <input type="text" id="bookName" name="bookName" required>
+            <button type="submit">Delete Book</button>
+        </form>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('deleteBookForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const book_name = document.getElementById('bookName').value;
+
+            const confirmation = confirm('Are you sure you want to delete the book?');
+            if (confirmation) {
+                try {
+                    const response = await fetch('/books/deleteBook', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ book_name }),
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        document.getElementById('message').textContent = 'Book deleted successfully';
+                    } else {
+                        document.getElementById('message').textContent = result.message;
+                    }
+                } catch (error) {
+                    document.getElementById('message').textContent = 'An error occurred. Please try again.';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

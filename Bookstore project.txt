@@ -1,0 +1,18 @@
+admin, password : admin123
+
+user rajats , password : rajats
+
+
+--------------------------------------------------------------------------------------
+Admin :
+Can Add author, add book, edit book stock, delete book, delete author, delete user
+User : 
+Can See all the books in the homepage. Buy a book, write a review. See all the reviews.
+
+
+
+-------------------------------------------------------------------------------------------
+
+Upload on github
+
+Cart feature is to be implemented.

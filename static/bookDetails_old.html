@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookstore App - Book Details</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .book-details-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .book-info {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        .book-info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .reviews {
+            margin-top: 20px;
+        }
+        .review {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+        .message {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .btn-group button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-size: 16px;
+        }
+        .btn-group .buy-button {
+            background-color: #28a745;
+        }
+        .btn-group .buy-button:hover {
+            background-color: #218838;
+        }
+        .btn-group .add-to-cart-button {
+            background-color: #17a2b8;
+        }
+        .btn-group .add-to-cart-button:hover {
+            background-color: #117a8b;
+        }
+    </style>
+</head>
+<body>
+    <div class="book-details-container">
+        <h1>Book Details</h1>
+        <div class="book-info" id="bookInfo">
+            <!-- Book details will be dynamically populated here -->
+        </div>
+        <div class="reviews" id="reviews">
+            <!-- Reviews will be dynamically populated here -->
+        </div>
+        <div class="btn-group">
+            <button class="buy-button" id="buyButton">Buy</button>
+            <button class="add-to-cart-button" id="addToCartButton">Add to Cart</button>
+        </div>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        function getQueryParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        async function fetchBookDetails() {
+            const bookId = getQueryParameter('bookId');
+            if (!bookId) {
+                document.getElementById('message').textContent = 'No book ID provided.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/books/${bookId}`, {
+                    credentials: 'include' // Include credentials to allow cookies
+                });
+                const book = await response.json();
+
+                if (response.ok) {
+                    displayBookDetails(book);
+                } else {
+                    document.getElementById('message').textContent = book.message;
+                }
+            } catch (error) {
+                document.getElementById('message').textContent = 'An error occurred. Please try again.';
+            }
+        }
+
+        function displayBookDetails(book) {
+            const bookInfo = document.getElementById('bookInfo');
+            bookInfo.innerHTML = `
+                <strong>Book Name:</strong> ${book.book_name}
+                <strong>Author:</strong> ${book.author.author_name}
+                <strong>Price:</strong> $${book.price}
+            `;
+
+            const reviewsContainer = document.getElementById('reviews');
+            if (book.reviews.length > 0) {
+                book.reviews.forEach(review => {
+                    const reviewElement = document.createElement('div');
+                    reviewElement.className = 'review';
+                    reviewElement.innerHTML = `
+                        <strong>Rating:</strong> ${review.rating} / 5
+                        <strong>Comment:</strong> ${review.comment || 'No comment'}
+                    `;
+                    reviewsContainer.appendChild(reviewElement);
+                });
+            } else {
+                reviewsContainer.innerHTML = '<p>No reviews available for this book.</p>';
+            }
+
+            // Attach event listeners
+            document.getElementById('buyButton').addEventListener('click', () => buyBook(book._id));
+            document.getElementById('addToCartButton').addEventListener('click', () => addToCart(book._id));
+        }
+
+        async function buyBook(bookId) {
+            try {
+                const response = await fetch('/users/buy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ bookId }),
+                    credentials: 'include'
+                });
+
+                const result = await response.json();
+                document.getElementById('message').textContent = result.message;
+                if (response.ok) {
+                    // Handle successful purchase
+                    window.location.href = '/userHome.html'; // Redirect to user home or another appropriate page
+                } else {
+                    document.getElementById('message').textContent = result.message;
+                }
+            } catch (error) {
+                document.getElementById('message').textContent = 'An error occurred. Please try again.';
+            }
+        }
+
+        async function addToCart(bookId) {
+            try {
+                const response = await fetch('/users/add-to-cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ bookId }),
+                    credentials: 'include'
+                });
+
+                const result = await response.json();
+                document.getElementById('message').textContent = result.message;
+            } catch (error) {
+                document.getElementById('message').textContent = 'An error occurred. Please try again.';
+            }
+        }
+
+        // Fetch book details on page load
+        fetchBookDetails();
+    </script>
+</body>
+</html>
