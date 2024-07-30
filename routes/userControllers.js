@@ -250,6 +250,8 @@ async function buyBook(req, res) {
 }
 
 
+
+
 async function addReview(req, res) {
     const { rating, comment, bookId } = req.body; // Retrieve bookId from the body
     const { userId } = req.cookies;
@@ -335,6 +337,72 @@ async function removeFromCart(req, res){
 }
 
 
+async function getCart(req, res) {
+    const { userId } = req.cookies
+
+    try {
+        const user = await User.findById(userId)
+            .populate({
+                path: 'booksInCart.book',
+                populate: {
+                    path: 'author',
+                    model: 'Author' // Adjust the model name if necessary
+                }
+            });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({ booksInCart: user.booksInCart });
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred. Please try again.', error: error.message });
+    }
+}
+
+
+async function checkout(req, res) {
+    const { userId } = req.cookies
+    console.log('in checkout userId from cookies:', userId);
+
+    try {
+        const user = await User.findById(userId).populate('booksInCart.book');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const booksInCart = user.booksInCart;
+        const outOfStockBooks = [];
+
+        for (const cartItem of booksInCart) {
+            const book = cartItem.book;
+            if (!book) {
+                return res.status(404).json({ message: 'Book not found' });
+            }
+            if (book.countInStock <= 0) {
+                outOfStockBooks.push(book.book_name);
+                continue;
+            }
+            book.countInStock -= 1;
+            book.isSold = true;
+            user.books.push(book._id);
+            await book.save();
+        }
+
+        // Clear the cart after processing
+        user.booksInCart = [];
+        await user.save();
+
+        if (outOfStockBooks.length > 0) {
+            return res.status(200).json({ message: `Some books were out of stock: ${outOfStockBooks.join(', ')}` });
+        }
+
+        res.status(200).json({ message: 'Books purchased successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error purchasing books', error: error.message });
+    }
+}
+
+
 async function deleteUser(req, res) {
     try {
         const { username } = req.body;
@@ -375,5 +443,6 @@ module.exports = {
     adminLogin,
     deleteUser,
     addToCart,
-    removeFromCart
+    removeFromCart,
+    getCart,checkout
 };
