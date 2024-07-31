@@ -1,12 +1,18 @@
 const express = require('express')
 const router = express.Router()
 
-const {adminAuth, authorAuth,eitherAuth,getAllAuthors,addAuthor, deleteAuthor} = require('./authControllers');
+const {getAllAuthors,addAuthor, deleteAuthor, authorLogin, getAuthorBooks, deleteBook} = require('./authControllers');
 
-router.get('/', adminAuth,getAllAuthors);
+router.get('/', getAllAuthors);
 
-router.post('/', adminAuth, addAuthor);
+router.post('/addAuthor',  addAuthor);
 
 router.delete('/deleteAuthor', deleteAuthor);
+
+router.post('/login', authorLogin)
+
+router.get('/books', getAuthorBooks)
+
+router.delete('/removeBook/:bookId', deleteBook);
 
 module.exports = router
