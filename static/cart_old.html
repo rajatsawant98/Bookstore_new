@@ -40,24 +40,6 @@
             margin-right: 10px;
             font-weight: bold;
         }
-        .quantity-control {
-            display: flex;
-            align-items: center;
-        }
-        .quantity-control button {
-            background-color: #007bff;
-            border: none;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .quantity-control button:hover {
-            background-color: #0056b3;
-        }
-        .quantity-control span {
-            margin: 0 10px;
-        }
         .remove-button {
             background-color: #dc3545;
             border: none;
@@ -144,12 +126,7 @@
                             <strong>Book Name:</strong> ${cartItem.book.book_name}<br>
                             <strong>Author:</strong> ${cartItem.book.author.author_name}<br>
                         </div>
-                        <div class="quantity-control">
-                            <button onclick="updateQuantity('${cartItem.book._id}', ${cartItem.quantity - 1})">-</button>
-                            <span>${cartItem.quantity}</span>
-                            <button onclick="updateQuantity('${cartItem.book._id}', ${cartItem.quantity + 1})">+</button>
-                        </div>
-                        <div class="book-price">$${cartItem.book.price * cartItem.quantity}</div>
+                        <div class="book-price">$${cartItem.book.price}</div>
                         <button class="remove-button" onclick="removeFromCart('${cartItem.book._id}')">Remove</button>
                     `;
                     cartItemsContainer.appendChild(bookElement);
@@ -180,31 +157,6 @@
             }
         }
 
-        async function updateQuantity(bookId, quantity) {
-            if (quantity <= 0) {
-                removeFromCart(bookId);
-                return;
-            }
-            try {
-                const response = await fetch('/users/update-quantity', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ bookId, quantity }),
-                    credentials: 'include'
-                });
-
-                const result = await response.json();
-                document.getElementById('message').textContent = result.message;
-                if (response.ok) {
-                    fetchCart(); // Refresh cart items
-                }
-            } catch (error) {
-                document.getElementById('message').textContent = 'An error occurred. Please try again.';
-            }
-        }
-
         function continueShopping() {
             window.location.href = '/userhome.html'; // Adjust the URL to your shop page
         }
@@ -218,6 +170,7 @@
 
         async function processCheckout() {
             try {
+                console.log("here 1");
                 const response = await fetch('/users/checkout', {
                     method: 'POST',
                     headers: {
@@ -225,6 +178,8 @@
                     },
                     credentials: 'include'
                 });
+
+                
 
                 const result = await response.json();
                 document.getElementById('message').textContent = result.message;

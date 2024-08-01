@@ -10,7 +10,7 @@ const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
 
 async function authorLogin(req, res){
     const { author_name, password } = req.body;
-    const author = await Author.findOne({ author_name }).lean();
+    const author = await Author.findOne({ author_name });
 
     if (!author) {
         return res.status(400).json({ message: 'Invalid username/password' });
@@ -22,11 +22,8 @@ async function authorLogin(req, res){
             JWT_SECRET
         );
 
-        res.cookie('authorId', author._id.toString(), {
-            httpOnly: true,
-            secure: false, // Set to true if using HTTPS
-            sameSite: 'strict'
-        });
+        res.cookie('authorId', author._id.toString());
+        
         console.log('Setting cookie: authorId', author._id.toString());
         return res.status(201).json({ message: 'Author Login successfully', data: token });
         

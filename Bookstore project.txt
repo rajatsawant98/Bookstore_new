@@ -16,3 +16,11 @@ author login , Can see only his books, Can add book, Delete book,
 
 https://github.com/rajatsawant98/Bookstore_new
 -------------------------------------------------------------------------------------------
+ToDo:
+
+Logout from all the pages (jugaad done)
+after logout you can access userhome.html 
+
+
+Admin Logout
+

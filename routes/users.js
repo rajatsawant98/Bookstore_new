@@ -2,8 +2,8 @@ const express = require('express')
 const cookieParser = require('cookie-parser');
 const router = express.Router()
 
-const {registerUser,getAllUsers,buyBook,addReview, userLogin, addAdmin, 
-    adminLogin, deleteUser, addToCart, removeFromCart,getCart, checkout} = require('./userControllers');
+const {registerUser,getAllUsers,buyBook,addReview, userLogin, addAdmin,updateQuantity, 
+    adminLogin, deleteUser, addToCart, removeFromCart,getCart, checkout, logout} = require('./userControllers');
 
 router.post('/register', registerUser);
 
@@ -29,10 +29,16 @@ router.get('/cart', getCart)
 
 router.post('/checkout', checkout)
 
-router.post('/logout', (req, res) => {
-    res.clearCookie('userId');
-    res.json({ message: 'Logged out successfully' });
-});
+router.post('/update-quantity', updateQuantity)
+
+// router.post('/logout', logout)
+
+
+
+// router.post('/logout', (req, res) => {
+//     res.clearCookie('userId');
+//     res.json({ message: 'Logged out successfully' });
+// });
 
 
 module.exports = router

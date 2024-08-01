@@ -1,3 +1,4 @@
+const { Long } = require('mongodb');
 const Author = require('../Models/author');
 const Book = require('../models/bookSchema');
 const User = require('../Models/user');
@@ -78,21 +79,32 @@ async function getBookByName (req, res) {
 }
 
 
-// async function addBook(req, res) {
-//     const book = new Book({
-//         isbd_number : req.body.isbd_number,
-//         book_name : req.body.book_name,
-//         genre : req.body.genre,
-//         author : req.body.author,
-//         price : req.body.price,
-//         isSold : req.body.isSold,
-//         countInStock : req.body.countInStock
-//     })
 
-//     try{
-//         const b1 = await book.save()
-//         res.json(b1)
-//     }catch(err){
+
+// async function addBook(req, res) {
+//     const { isbn, book_name, genre, price, isSold, countInStock,author_name } = req.body; 
+
+//     try {
+//         const author = await Author.findOne({ author_name: author_name });
+        
+//         if (!author) {
+//             return res.status(404).json({ message: 'Author not found' });
+//         }
+
+//         const book = new Book({
+//             isbn,
+//             book_name,
+//             genre,
+//             author: author._id,
+//             price,
+//             isSold,
+//             countInStock
+//         });
+
+//         const savedBook = await book.save();
+//         res.json(savedBook);
+
+//     } catch (err) {
 //         res.status(500).json({ message: 'Error', error: err.message });
 //     }
 // }
@@ -100,11 +112,12 @@ async function getBookByName (req, res) {
 
 
 async function addBook(req, res) {
-    const { isbn, book_name, genre, price, isSold, countInStock,author_name } = req.body; 
+    const { isbn, book_name, genre, price, isSold, countInStock, author_name } = req.body; 
+    const photo = req.file ? req.file.path : null;
 
     try {
-        const author = await Author.findOne({ author_name: author_name });
-        
+        const author = await Author.findOne({ author_name });
+
         if (!author) {
             return res.status(404).json({ message: 'Author not found' });
         }
@@ -116,16 +129,18 @@ async function addBook(req, res) {
             author: author._id,
             price,
             isSold,
-            countInStock
+            countInStock,
+            photo
         });
 
         const savedBook = await book.save();
         res.json(savedBook);
 
     } catch (err) {
-        res.status(500).json({ message: 'Error', error: err.message });
+        res.status(500).json({ message: 'Error in addBook function', error: err.message });
     }
 }
+
 
 
 // async function editStock(req, res) {
@@ -328,8 +343,40 @@ async function getBookById(req, res){
 }
 
 
+async function addBookAuthor(req, res) {
+    const { isbn, book_name, genre, price, isSold, countInStock } = req.body; 
+    const photo = req.file ? req.file.path : null;
+    const { authorId } = req.cookies
+    console.log("authorId from cookies : " , authorId )
+
+    try {
+        const author = await Author.findById(authorId);
+
+        if (!author) {
+            return res.status(404).json({ message: 'Author not found' });
+        }
+
+        const book = new Book({
+            isbn,
+            book_name,
+            genre,
+            author: author._id,
+            price,
+            isSold,
+            countInStock,
+            photo
+        });
+
+        const savedBook = await book.save();
+        res.json(savedBook);
+
+    } catch (err) {
+        res.status(500).json({ message: 'Error in addBook function', error: err.message });
+    }
+}
+
 module.exports = {
-    adminAuth,
+    adminAuth,addBookAuthor,
     authorAuth,
     eitherAuth,
     getAllBooks,

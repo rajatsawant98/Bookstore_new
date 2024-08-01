@@ -73,10 +73,6 @@
                 <input type="text" id="genre" name="genre" required>
             </div>
             <div class="form-group">
-                <label for="authorName">Author Name</label>
-                <input type="text" id="authorName" name="author_name" required>
-            </div>
-            <div class="form-group">
                 <label for="price">Price</label>
                 <input type="number" id="price" name="price" required>
             </div>
@@ -103,15 +99,12 @@
             formData.append('isbn', document.getElementById('isbn').value);
             formData.append('book_name', document.getElementById('bookName').value);
             formData.append('genre', document.getElementById('genre').value);
-            formData.append('author_name', document.getElementById('authorName').value);
             formData.append('price', document.getElementById('price').value);
             formData.append('countInStock', document.getElementById('countInStock').value);
             formData.append('bookPhoto', document.getElementById('bookPhoto').files[0]);
 
-            console.log(formData)
-
             try {
-                const response = await fetch('/books/addBook', {
+                const response = await fetch('/books/addBookAuthor', {
                     method: 'POST',
                     body: formData,
                 });

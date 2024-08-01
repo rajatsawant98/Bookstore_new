@@ -20,6 +20,8 @@ con.on('open', () => {
 const app = express()
 app.use('/', express.static(path.join(__dirname, 'static')))
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -34,6 +36,11 @@ app.use('/authors', authorRouter)
 const userRouter = require('./routes/users')
 app.use('/users', userRouter)
 
-app.listen(8000, () => {
-    console.log('Server Started');
-})
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+// app.listen(8000, () => {
+//     console.log('Server Started');
+// })

@@ -129,21 +129,7 @@
 
         document.getElementById('logoutButton').addEventListener('click', function() {
             localStorage.removeItem('token'); // Remove the JWT token from local storage
-            localStorage.setItem('logout', Date.now()); // Set a special item to notify other tabs
             window.location.href = '/login.html'; // Redirect to login page
-        });
-
-        window.addEventListener('storage', function(event) {
-            if (event.key === 'logout') {
-                localStorage.removeItem('token'); // Remove the JWT token from local storage
-                window.location.href = '/login.html'; // Redirect to login page
-            }
-        });
-
-        window.addEventListener('load', function() {
-            if (localStorage.getItem('logout')) {
-                localStorage.removeItem('logout');
-            }
         });
 
         async function fetchBooks() {
@@ -278,3 +264,4 @@
     </script>
 </body>
 </html>
+

@@ -1,16 +1,19 @@
 const express = require('express')
 const router = express.Router()
+const upload = require('../uploads/upload');
 
 // const Book = require('../models/bookSchema')
 
-const {getAllBooks,getBookByName,addBook,editStock,deleteBook,getAllAuthors,
+const {getAllBooks,getBookByName,addBook,editStock,deleteBook,getAllAuthors,addBookAuthor,
     addAuthor,getBooksAndAuthors,getAveragePriceByAuthor , getBooks, getBookById} = require('./controllers');
 
 
 router.get('/all', getBooks);
 router.get('/name/:name', getBookByName);
 
-router.post('/addBook',addBook);
+router.post('/addBook', upload.single('bookPhoto'), addBook);
+
+router.post('/addBookAuthor', upload.single('bookPhoto'), addBookAuthor);
 
 router.post('/editStock', editStock);
 

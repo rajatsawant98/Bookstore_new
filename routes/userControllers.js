@@ -297,7 +297,7 @@ async function addToCart(req, res){
         if (isBookInCart) {
             return res.status(400).json({ message: 'Book already in cart' });
         }else{
-            user.booksInCart.push({ book: bookId });
+            user.booksInCart.push({ book: bookId , quantity : 1});
             await user.save();
 
             res.status(200).json({ message: 'Book added to cart' });
@@ -430,8 +430,36 @@ async function deleteUser(req, res) {
     }
 }
 
+async function updateQuantity(req, res){
+    const { bookId, quantity } = req.body;
+    const { userId } = req.cookies
+
+    try {
+        const user = await User.findById(userId);
+        const cartItem = user.booksInCart.find(item => item.book.toString() === bookId);
+        if (cartItem) {
+            cartItem.quantity = quantity;
+            await user.save();
+            res.status(200).json({ message: 'Cart updated successfully' });
+        } else {
+            res.status(404).json({ message: 'Book not found in cart' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred. Please try again.' });
+    }
+}
+
+async function logout(req, res) {
+    res.clearCookie('userId', {
+        httpOnly: true,
+        secure: false, // Set to true if using HTTPS
+        sameSite: 'strict'
+    });
+    res.status(200).json({ message: 'Logged out successfully.' });
+}
+
 module.exports = {
-    adminAuth,
+    adminAuth,updateQuantity, 
     authorAuth,
     eitherAuth,
     registerUser,
@@ -444,5 +472,5 @@ module.exports = {
     deleteUser,
     addToCart,
     removeFromCart,
-    getCart,checkout
+    getCart,checkout, logout
 };
