@@ -126,31 +126,43 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = '/login.html'; // Redirect if no token is found
-        } else {
-            fetch('/verify-token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.valid) {
-                    localStorage.removeItem('token');
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+        window.location.href = '/login.html'; // Redirect if no token is found
+    } else {
+        fetch('/users/verify-token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        })
+        .then(response => response.json())
+        .then(async data => {
+            if (!data.valid) {
+                const refreshResponse = await fetch('/refresh-token', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+
+                const refreshResult = await refreshResponse.json();
+                if (refreshResponse.ok) {
+                    localStorage.setItem('accessToken', refreshResult.accessToken);
+                    // Optionally, reload the page to retry the failed request
+                    window.location.reload();
+                } else {
+                    localStorage.removeItem('accessToken');
                     window.location.href = '/login.html';
                 }
-            });
-        }
-    });
+            }
+        });
+    }
+});
 
         let books = [];
 
         document.getElementById('logoutButton').addEventListener('click', function() {
-            localStorage.removeItem('token'); // Remove the JWT token from local storage
+            localStorage.removeItem('accessToken'); // Remove the JWT token from local storage
             localStorage.setItem('logout', Date.now()); // Set a special item to notify other tabs
             window.location.href = '/login.html'; // Redirect to login page
         });

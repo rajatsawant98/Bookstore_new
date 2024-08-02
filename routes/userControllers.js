@@ -9,20 +9,9 @@ const cookieParser = require('cookie-parser');
 
 
 const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
+const JWT_REFRESH_SECRET = 'dfkjvbkd874^%HJKBKJKkjhvjhbkj865KHB&^%^*'
 
 
-async function authenticateToken(req, res, next) {
-    const token = req.cookies.token || req.headers['authorization']?.split(' ')[1]; // Check for token in cookies or Authorization header
-
-    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
-
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: 'Invalid token.' });
-
-        req.user = user;
-        next();
-    });
-}
 
 
 async function addAdmin(req, res) {
@@ -121,7 +110,36 @@ async function registerUser(req, res) {
 }
 
 
+// async function userLogin(req, res) {
+//     const { username, password } = req.body;
+//     const user = await User.findOne({ username }).lean();
+
+//     if (!user) {
+//         return res.status(400).json({ message: 'Invalid username/password' });
+//     }
+
+//     if (await bcrypt.compare(password, user.password)) {
+//         const token = jwt.sign(
+//             { id: user._id, username: user.username },
+//             JWT_SECRET
+//         );
+
+//         res.cookie('userId', user._id.toString(), {
+//             httpOnly: true,
+//             secure: false, // Set to true if using HTTPS
+//             sameSite: 'strict'
+//         });
+//         console.log('Setting cookie: userId', user._id.toString());
+//         return res.status(201).json({ message: 'User Login successfully', data: token });
+        
+//     } else {
+//         return res.status(400).json({ message: 'Invalid username/password' });
+//     }
+// }
+
+
 async function userLogin(req, res) {
+    console.log("userLogin getting called");
     const { username, password } = req.body;
     const user = await User.findOne({ username }).lean();
 
@@ -130,19 +148,25 @@ async function userLogin(req, res) {
     }
 
     if (await bcrypt.compare(password, user.password)) {
-        const token = jwt.sign(
+        const accessToken = jwt.sign(
             { id: user._id, username: user.username },
-            JWT_SECRET
+            JWT_SECRET,
+            { expiresIn: '15m' } // Access token expiration time
         );
 
-        res.cookie('userId', user._id.toString(), {
+        const refreshToken = jwt.sign(
+            { id: user._id, username: user.username },
+            JWT_REFRESH_SECRET,
+            { expiresIn: '7d' } // Refresh token expiration time
+        );
+
+        res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: false, // Set to true if using HTTPS
             sameSite: 'strict'
         });
-        console.log('Setting cookie: userId', user._id.toString());
-        return res.status(201).json({ message: 'User Login successfully', data: token });
-        
+
+        return res.status(201).json({ message: 'User Login successfully', accessToken });
     } else {
         return res.status(400).json({ message: 'Invalid username/password' });
     }
@@ -448,8 +472,41 @@ async function logout(req, res) {
     res.status(200).json({ message: 'Logged out successfully.' });
 }
 
+async function authenticateToken(req, res, next) {
+    console.log("authenticateToken getting called");
+    const token = req.headers['authorization']?.split(' ')[1];
+    console.log("Token from headers: ",token);
+    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: 'Invalid token.' });
+
+        req.user = user;
+        next();
+    });
+}
+
+
+async function refreshToken (req, res){
+    console.log("refreshToken getting called");
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) return res.status(401).json({ message: 'Access denied. No token provided.' });
+
+    jwt.verify(refreshToken, JWT_REFRESH_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: 'Invalid refresh token.' });
+
+        const accessToken = jwt.sign(
+            { id: user.id, username: user.username },
+            JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        res.json({ accessToken });
+    });
+}
+
 module.exports = {
-    updateQuantity, 
+    updateQuantity, refreshToken, 
     authenticateToken,
     registerUser,
     getAllUsers,

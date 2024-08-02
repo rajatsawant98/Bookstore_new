@@ -76,33 +76,66 @@
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-            try {
-                const response = await fetch('/users/login', {
+    try {
+        const response = await fetch('/users/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+            credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            localStorage.setItem('accessToken', result.accessToken);
+            document.getElementById('message').textContent = result.message;
+            window.location.href = '/userhome.html'; // Redirect to homepage on successful login
+        } else {
+            document.getElementById('message').textContent = result.message;
+        }
+    } catch (error) {
+        document.getElementById('message').textContent = 'An error occurred. Please try again.';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+        window.location.href = '/login.html'; // Redirect if no token is found
+    } else {
+        fetch('/verify-token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        })
+        .then(response => response.json())
+        .then(async data => {
+            if (!data.valid) {
+                const refreshResponse = await fetch('/refresh-token', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password }),
                     credentials: 'same-origin'
                 });
 
-                const result = await response.json();
-                if (response.ok) {
-                    localStorage.setItem('token', result.data);
-                    document.getElementById('message').textContent = result.message;
-                    window.location.href = '/userhome.html'; // Redirect to homepage on successful login
+                const refreshResult = await refreshResponse.json();
+                if (refreshResponse.ok) {
+                    localStorage.setItem('accessToken', refreshResult.accessToken);
+                    // Optionally, reload the page to retry the failed request
+                    window.location.reload();
                 } else {
-                    console.log('Fail');
-                    document.getElementById('message').textContent = result.message;
+                    localStorage.removeItem('accessToken');
+                    window.location.href = '/login.html';
                 }
-            } catch (error) {
-                document.getElementById('message').textContent = 'An error occurred. Please try again.';
             }
         });
+    }
+});
     </script>
 </body>
 </html>

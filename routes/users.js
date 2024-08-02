@@ -2,12 +2,18 @@ const express = require('express')
 const cookieParser = require('cookie-parser');
 const router = express.Router()
 
-const {registerUser,getAllUsers,buyBook,addReview, userLogin, addAdmin,updateQuantity, 
-    adminLogin, deleteUser, addToCart, removeFromCart,getCart, checkout, logout} = require('./userControllers');
+const {registerUser,getAllUsers,buyBook,addReview, userLogin, addAdmin,updateQuantity, refreshToken,
+    adminLogin, deleteUser, addToCart, removeFromCart,getCart, checkout, logout, authenticateToken} = require('./userControllers');
 
 router.post('/register', registerUser);
 
 router.post('/login', userLogin);
+
+router.post('/users/verify-token', authenticateToken, (req, res) => {
+    res.json({ valid: true });
+});
+
+router.post('users/refresh-token', refreshToken)
 
 router.get('/' , getAllUsers);
 
