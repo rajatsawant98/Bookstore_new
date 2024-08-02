@@ -125,6 +125,28 @@
     <div class="message" id="message"></div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login.html'; // Redirect if no token is found
+        } else {
+            fetch('/verify-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.valid) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                }
+            });
+        }
+    });
+
         let books = [];
 
         document.getElementById('logoutButton').addEventListener('click', function() {

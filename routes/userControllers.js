@@ -7,31 +7,21 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 
 
+
 const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
 
 
-function adminAuth(req, res, next) {
-    if (req.query.actor === "admin") {
-        next();
-    } else {
-        res.send("Not Authorized");
-    }
-}
+async function authenticateToken(req, res, next) {
+    const token = req.cookies.token || req.headers['authorization']?.split(' ')[1]; // Check for token in cookies or Authorization header
 
-function authorAuth(req, res, next) {
-    if (req.query.actor === "author") {
-        next();
-    } else {
-        res.send("Not Authorized");
-    }
-}
+    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
 
-function eitherAuth(req, res, next) {
-    if (req.query.actor === "author" || req.query.actor === "admin") {
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: 'Invalid token.' });
+
+        req.user = user;
         next();
-    } else {
-        res.send("Not Authorized");
-    }
+    });
 }
 
 
@@ -459,9 +449,8 @@ async function logout(req, res) {
 }
 
 module.exports = {
-    adminAuth,updateQuantity, 
-    authorAuth,
-    eitherAuth,
+    updateQuantity, 
+    authenticateToken,
     registerUser,
     getAllUsers,
     buyBook,
