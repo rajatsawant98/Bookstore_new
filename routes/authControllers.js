@@ -4,9 +4,45 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 // const User = require('../Models/user');
+const TokenBlacklist = require('../Models/blacklist');
 
 
 const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
+
+
+async function authenticateToken(req, res, next) {
+    console.log("authenticateToken getting called");
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+
+    // Check if token is blacklisted
+    const blacklistedToken = await TokenBlacklist.findOne({ token });
+    if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: 'Invalid token.' });
+
+        req.user = user;
+        next();
+    });
+}
+
+
+function authorize(allowedRoles) {
+    return (req, res, next) => {
+        console.log("authorize middleware getting called");
+        if (!req.user) return res.status(401).json({ message: 'Authentication required.' });
+
+        // Check if the user's role is included in the allowed roles
+        if (!allowedRoles.includes(req.user.role)) {
+            console.log("Admin not authorized");
+            return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
+        }
+
+        next();
+    };
+}
 
 async function authorLogin(req, res){
     const { author_name, password } = req.body;
@@ -44,6 +80,7 @@ async function getAllAuthors(req, res) {
 
 
 async function addAuthor(req, res) {
+    console.log("addAuthor getting called");
     const { author_name, age, address, gender, password } = req.body;
 
     try {
@@ -144,7 +181,7 @@ async function deleteBook (req, res) {
 
 
 module.exports = {
-    getAllAuthors,
+    getAllAuthors,authorize,authenticateToken, 
     addAuthor,
     deleteAuthor,
     authorLogin,

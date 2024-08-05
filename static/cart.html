@@ -115,21 +115,54 @@
 
     <script>
         async function fetchCart() {
-            try {
-                const response = await fetch('/users/cart', {
+    try {
+        let accessToken = localStorage.getItem('accessToken');
+
+        let response = await fetch('/users/cart', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            credentials: 'include' // Include credentials to allow cookies
+        });
+
+        if (response.status === 403) {
+            const refreshResponse = await fetch('/users/refresh-token', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            const refreshResult = await refreshResponse.json();
+            if (refreshResponse.ok) {
+                localStorage.setItem('accessToken', refreshResult.accessToken);
+                accessToken = refreshResult.accessToken;
+
+                // Retry the cart request with the new token
+                response = await fetch('/users/cart', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
                     credentials: 'include' // Include credentials to allow cookies
                 });
-                const data = await response.json();
-
-                if (response.ok) {
-                    displayCart(data.booksInCart);
-                } else {
-                    document.getElementById('message').textContent = data.message;
-                }
-            } catch (error) {
-                document.getElementById('message').textContent = 'An error occurred. Please try again.';
+            } else {
+                localStorage.removeItem('accessToken');
+                window.location.href = '/login.html';
+                return;
             }
         }
+
+        const data = await response.json();
+        if (response.ok) {
+            displayCart(data.booksInCart);
+        } else {
+            document.getElementById('message').textContent = data.message;
+        }
+    } catch (error) {
+        document.getElementById('message').textContent = 'An error occurred. Please try again.';
+    }
+}
+
 
         function displayCart(booksInCart) {
             const cartItemsContainer = document.getElementById('cartItems');

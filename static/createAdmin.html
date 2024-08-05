@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+        .container h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .container label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        .container input,
+        .container select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .container button:hover {
+            background-color: #218838;
+        }
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Admin</h1>
+        <form id="createAdminForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" required>
+
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" required>
+
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+
+            <label for="role">Role:</label>
+            <select id="role" name="role" required>
+                <option value="Super Admin">Super Admin</option>
+                <option value="Librarian">Librarian</option>
+                <option value="Bookkeeper">Bookkeeper</option>
+            </select>
+
+            <button type="submit">Create Admin</button>
+            <div class="message" id="message"></div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('createAdminForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+                document.getElementById('message').textContent = result.message;
+                if (response.ok) {
+                    this.reset();
+                }
+            } catch (error) {
+                document.getElementById('message').textContent = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>

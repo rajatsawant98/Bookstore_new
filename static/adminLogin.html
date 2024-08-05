@@ -92,7 +92,7 @@
                 const result = await response.json();
                 if (response.ok) {
                     console.log('suxess');
-                    localStorage.setItem('token', result.data);
+                    localStorage.setItem('accessToken', result.accessToken);
                     document.getElementById('message').textContent = result.message;
                     window.location.href = '/AdminHome.html'; // Redirect to homepage on successful login
                 } else {

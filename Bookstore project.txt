@@ -18,8 +18,8 @@ https://github.com/rajatsawant98/Bookstore_new
 -------------------------------------------------------------------------------------------
 ToDo:
 
-verify-token route not defined still logout working. WHY?????
 
-
-Admin Logout
-
+Types of admin: Super Admin, Librarian, Bookeeper
+Super Admin: Can create admin, and has all access.
+Librarian: Add author, Delete author , Delete User.
+Bookeeper: Add Book , Edit book Stock , Delete Book.

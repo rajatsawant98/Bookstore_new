@@ -65,6 +65,7 @@
             <button id="deleteBook">Delete Book</button>
             <button id="deleteAuthor">Delete Author</button>
             <button id="deleteUser">Delete User</button>
+            <button id="createAdmin">Create Admin</button> <!-- New button added here -->
         </div>
         <div class="message" id="message"></div>
     </div>
@@ -92,6 +93,10 @@
 
         document.getElementById('deleteUser').addEventListener('click', function() {
             window.location.href = '/deleteUser.html';
+        });
+
+        document.getElementById('createAdmin').addEventListener('click', function() { // Event listener for the new button
+            window.location.href = '/createAdmin.html';
         });
     </script>
 </body>

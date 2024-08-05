@@ -6,9 +6,13 @@ const path = require('path');
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const url = 'mongodb://localhost/bookstore_main'
+const cron = require('node-cron');
+const TokenBlacklist = require('./Models/blacklist');
+
+
 // const authenticateToken = require('./routes/userControllers/authenticateToken');
 
-const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
+// const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
 
 
 // async function authenticateToken(req, res, next) {
@@ -57,6 +61,16 @@ app.use('/authors', authorRouter)
 
 const userRouter = require('./routes/users')
 app.use('/users', userRouter)
+
+cron.schedule('0 13 * * *', async () => {
+    console.log('cron job started running');
+    try {
+        await TokenBlacklist.deleteMany({ expiresAt: { $lt: new Date() } });
+        console.log('Expired tokens cleaned up');
+    } catch (error) {
+        console.error('Error cleaning up expired tokens', error);
+    }
+});
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, '0.0.0.0', () => {

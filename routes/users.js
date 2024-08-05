@@ -13,11 +13,11 @@ router.post('/users/verify-token', authenticateToken, (req, res) => {
     res.json({ valid: true });
 });
 
-router.post('users/refresh-token', refreshToken)
+router.post('/refresh-token', refreshToken)
 
 router.get('/' , getAllUsers);
 
-router.post('/buy', buyBook);
+router.post('/buy', authenticateToken, buyBook);
 
 router.post('/review', addReview);
 
@@ -27,17 +27,17 @@ router.post('/admin', addAdmin)
 
 router.post('/adminLogin', adminLogin)
 
-router.post('/add-to-cart', addToCart)
+router.post('/add-to-cart', authenticateToken, addToCart)
 
 router.post('/remove-from-cart', removeFromCart)
 
-router.get('/cart', getCart)
+router.get('/cart',authenticateToken , getCart)
 
 router.post('/checkout', checkout)
 
 router.post('/update-quantity', updateQuantity)
 
-// router.post('/logout', logout)
+router.post('/logout', logout)
 
 
 

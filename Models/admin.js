@@ -23,6 +23,11 @@ const adminSchema = new mongoose.Schema({
     gender: {
         type: String,
         required: true
+    }, 
+    role: {
+        type: String,
+        enum: ['SuperAdmin', 'Librarian', 'Bookkeeper'],
+        required: true
     }
 
 })

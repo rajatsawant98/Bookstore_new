@@ -5,6 +5,7 @@ const Admin = require('../Models/admin');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const TokenBlacklist = require('../Models/blacklist');
 
 
 
@@ -16,10 +17,10 @@ const JWT_REFRESH_SECRET = 'dfkjvbkd874^%HJKBKJKkjhvjhbkj865KHB&^%^*'
 
 async function addAdmin(req, res) {
     try {
-        const { username, email, password, age, address, gender } = req.body;
+        const { username, email, password, age, address, gender, role } = req.body;
 
         // Validate required fields
-        if (!username || !email || !password || !age || !address || !gender) {
+        if (!username || !email || !password || !age || !address || !gender || !role) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
@@ -39,7 +40,8 @@ async function addAdmin(req, res) {
             password: hashedPassword,
             age,
             address,
-            gender
+            gender,
+            role
         });
 
         // Save the admin to the database
@@ -63,28 +65,28 @@ async function registerUser(req, res) {
         if (!username || typeof username !== 'string') {
             return res.status(400).json({ message: 'Invalid username' });
         }
-        
+
 
         if (!plainTextPassword || typeof plainTextPassword !== 'string') {
             return res.status(400).json({ message: 'Invalid password' });
         }
-        
+
         if (plainTextPassword.length < 6) {
             return res.status(400).json({ message: 'Password too small. Should be at least 6 characters' });
         }
-        
+
 
         // Check if the user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
-        
+
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(plainTextPassword, 10);
 
-        
+
 
         // Create a new user
         const user = new User({
@@ -96,13 +98,13 @@ async function registerUser(req, res) {
             password: hashedPassword
         });
 
-        
+
         await user.save().catch(err => {
             console.error("Error saving user:", err);
             throw err; // Rethrow the error to be caught in the catch block
         });
-        
-        
+
+
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Error registering user', error: err.message });
@@ -131,7 +133,7 @@ async function registerUser(req, res) {
 //         });
 //         console.log('Setting cookie: userId', user._id.toString());
 //         return res.status(201).json({ message: 'User Login successfully', data: token });
-        
+
 //     } else {
 //         return res.status(400).json({ message: 'Invalid username/password' });
 //     }
@@ -166,6 +168,12 @@ async function userLogin(req, res) {
             sameSite: 'strict'
         });
 
+        res.cookie('userId', user._id.toString(), {
+            httpOnly: true,
+            secure: false, // Set to true if using HTTPS
+            sameSite: 'strict'
+        });
+
         return res.status(201).json({ message: 'User Login successfully', accessToken });
     } else {
         return res.status(400).json({ message: 'Invalid username/password' });
@@ -173,9 +181,49 @@ async function userLogin(req, res) {
 }
 
 
+// async function adminLogin(req, res) {
+//     const { username, password } = req.body;
+//     console.log('Login attempt:', username); // Log the login attempt
+
+//     try {
+//         const admin = await Admin.findOne({ username }).lean();
+
+//         if (!admin) {
+//             console.log('Admin not found'); // Log when admin is not found
+//             return res.status(400).json({ message: 'Invalid username/password' });
+//         }
+
+//         const isPasswordCorrect = await bcrypt.compare(password, admin.password);
+//         console.log('Password comparison result:', isPasswordCorrect); // Log the result of password comparison
+
+//         if (isPasswordCorrect) {
+//             const token = jwt.sign(
+//                 {
+//                     id: admin._id,
+//                     username: admin.username
+//                 },
+//                 JWT_SECRET
+//             );
+
+//             console.log('Login successful'); // Log successful login
+//             res.status(201).json({ message: 'Admin Login successfully' });
+//         } else {
+//             console.log('Incorrect password'); // Log when the password is incorrect
+//             return res.status(400).json({ message: 'Invalid username/password' });
+//         }
+
+
+
+//     } catch (err) {
+//         console.error('Error during login:', err); // Log any errors that occur during login
+//         res.status(500).json({ status: 'error', error: 'An error occurred during login. Please try again.' });
+//     }
+// }
+
+
 async function adminLogin(req, res) {
+    console.log("adminLogin getting called");
     const { username, password } = req.body;
-    console.log('Login attempt:', username); // Log the login attempt
 
     try {
         const admin = await Admin.findOne({ username }).lean();
@@ -189,29 +237,42 @@ async function adminLogin(req, res) {
         console.log('Password comparison result:', isPasswordCorrect); // Log the result of password comparison
 
         if (isPasswordCorrect) {
-            const token = jwt.sign(
-                {
-                    id: admin._id,
-                    username: admin.username
-                },
-                JWT_SECRET
+            const accessToken = jwt.sign(
+                { id: admin._id, username: admin.username, role:admin.role },
+                JWT_SECRET,
+                { expiresIn: '15m' } // Access token expiration time
             );
 
+            const refreshToken = jwt.sign(
+                { id: admin._id, username: admin.username, role:admin.role },
+                JWT_REFRESH_SECRET,
+                { expiresIn: '7d' } // Refresh token expiration time
+            );
+
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: false, // Set to true if using HTTPS
+                sameSite: 'strict'
+            });
+
+            res.cookie('adminId', admin._id.toString(), {
+                httpOnly: true,
+                secure: false, // Set to true if using HTTPS
+                sameSite: 'strict'
+            });
+
             console.log('Login successful'); // Log successful login
-            res.status(201).json({ message: 'Admin Login successfully' });
-        }else{
+            return res.status(201).json({ message: 'Admin Login successfully', accessToken });
+        } else {
             console.log('Incorrect password'); // Log when the password is incorrect
             return res.status(400).json({ message: 'Invalid username/password' });
         }
-        
 
-        
     } catch (err) {
         console.error('Error during login:', err); // Log any errors that occur during login
         res.status(500).json({ status: 'error', error: 'An error occurred during login. Please try again.' });
     }
 }
-
 
 
 
@@ -229,26 +290,29 @@ async function getAllUsers(req, res) {
 
 async function buyBook(req, res) {
     try {
-        console.log('Cookies:', req.cookies);
+        // console.log("buyBook from server getting called");
+        // console.log('Cookies:', req.cookies);
         const { bookId } = req.body;
         console.log('bookId from body:', bookId);
-        const { userId } = req.cookies
-        console.log('userId from cookies:', userId);
+        const userId = req.user.id;
+        console.log("userId from req: ", userId);
+        // const { userId } = req.cookies
+        // console.log('userId from cookies:', userId);
 
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        
+
         const book = await Book.findById(bookId);
-        
+
         if (!book) {
             return res.status(404).json({ message: 'Book not found' });
         }
-        else if(book.countInStock <= 0){
+        else if (book.countInStock <= 0) {
             return res.status(404).json({ message: 'Book out of stock' });
         }
-        else{
+        else {
             book.countInStock -= 1;
             book.isSold = "true";
             user.books.push(book._id);
@@ -256,8 +320,8 @@ async function buyBook(req, res) {
             await user.save();
             return res.status(200).json({ message: 'Book purchased Successfully' });
         }
-        
-        
+
+
     } catch (err) {
         res.status(500).json({ message: 'Error purchasing book', error: err.message });
     }
@@ -294,10 +358,10 @@ async function addReview(req, res) {
     }
 }
 
-async function addToCart(req, res){
+async function addToCart(req, res) {
     const { bookId } = req.body;
-    const { userId } = req.cookies
-    console.log('userId from cookies:', userId);
+    const userId = req.user.id;
+    console.log('userId from accessToken:', userId);
 
     try {
         const user = await User.findById(userId);
@@ -310,8 +374,8 @@ async function addToCart(req, res){
 
         if (isBookInCart) {
             return res.status(400).json({ message: 'Book already in cart' });
-        }else{
-            user.booksInCart.push({ book: bookId , quantity : 1});
+        } else {
+            user.booksInCart.push({ book: bookId, quantity: 1 });
             await user.save();
 
             res.status(200).json({ message: 'Book added to cart' });
@@ -322,7 +386,7 @@ async function addToCart(req, res){
 }
 
 
-async function removeFromCart(req, res){
+async function removeFromCart(req, res) {
     const { bookId } = req.body;
     const { userId } = req.cookies
 
@@ -337,14 +401,14 @@ async function removeFromCart(req, res){
 
         if (cartIndex === -1) {
             return res.status(400).json({ message: 'Book not found in cart' });
-        }else{
+        } else {
             user.booksInCart.splice(cartIndex, 1);
             await user.save();
 
             res.status(200).json({ message: 'Book removed from cart' });
         }
 
-        
+
     } catch (error) {
         res.status(500).json({ message: 'An error occurred. Please try again.', error: error.message });
     }
@@ -352,7 +416,7 @@ async function removeFromCart(req, res){
 
 
 async function getCart(req, res) {
-    const { userId } = req.cookies
+    const userId = req.user.id;
 
     try {
         const user = await User.findById(userId)
@@ -364,11 +428,11 @@ async function getCart(req, res) {
                 }
             });
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'User not found from cart backend' });
         }
         res.status(200).json({ booksInCart: user.booksInCart });
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred. Please try again.', error: error.message });
+        res.status(500).json({ message: 'An error occurred. Please try again. in backend', error: error.message });
     }
 }
 
@@ -444,7 +508,7 @@ async function deleteUser(req, res) {
     }
 }
 
-async function updateQuantity(req, res){
+async function updateQuantity(req, res) {
     const { bookId, quantity } = req.body;
     const { userId } = req.cookies
 
@@ -463,20 +527,36 @@ async function updateQuantity(req, res){
     }
 }
 
-async function logout(req, res) {
-    res.clearCookie('userId', {
-        httpOnly: true,
-        secure: false, // Set to true if using HTTPS
-        sameSite: 'strict'
-    });
-    res.status(200).json({ message: 'Logged out successfully.' });
-}
+
+
+// async function authenticateToken(req, res, next) {
+//     console.log("authenticateToken getting called");
+//     // console.log("Headers: ",req.headers);
+//     const token = req.headers['authorization']?.split(' ')[1];
+//     // console.log("Token from headers: ",token);
+//     if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+
+//     jwt.verify(token, JWT_SECRET, (err, user) => {
+//         if (err) return res.status(403).json({ message: 'Invalid token.' });
+
+//         req.user = user;
+
+//         // console.log("USER: ",user)
+//         // console.log("REQ USER: ",req.user)
+//         next();
+//     });
+// }
+
 
 async function authenticateToken(req, res, next) {
     console.log("authenticateToken getting called");
     const token = req.headers['authorization']?.split(' ')[1];
-    console.log("Token from headers: ",token);
+
     if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+
+    // Check if token is blacklisted
+    const blacklistedToken = await TokenBlacklist.findOne({ token });
+    if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) return res.status(403).json({ message: 'Invalid token.' });
@@ -487,10 +567,16 @@ async function authenticateToken(req, res, next) {
 }
 
 
-async function refreshToken (req, res){
+
+async function refreshToken(req, res) {
     console.log("refreshToken getting called");
     const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken) return res.status(401).json({ message: 'Access denied. No token provided.' });
+
+    if (!refreshToken) return res.status(401).json({ message: 'Access denied. No refresh token provided.' });
+
+    // Check if token is blacklisted
+    const blacklistedToken = await TokenBlacklist.findOne({ token: refreshToken });
+    if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid refresh token.' });
 
     jwt.verify(refreshToken, JWT_REFRESH_SECRET, (err, user) => {
         if (err) return res.status(403).json({ message: 'Invalid refresh token.' });
@@ -505,8 +591,38 @@ async function refreshToken (req, res){
     });
 }
 
+
+
+
+async function logout(req, res) {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+        const accessToken = req.headers['authorization']?.split(' ')[1];
+
+        if (!refreshToken || !accessToken) {
+            return res.status(400).json({ message: 'No tokens provided' });
+        }
+
+        // Decode tokens to get their expiration times
+        const decodedRefreshToken = jwt.decode(refreshToken);
+        const decodedAccessToken = jwt.decode(accessToken);
+
+        // Add tokens to blacklist
+        await TokenBlacklist.create({ token: refreshToken, expiresAt: new Date(decodedRefreshToken.exp * 1000) });
+        await TokenBlacklist.create({ token: accessToken, expiresAt: new Date(decodedAccessToken.exp * 1000) });
+
+        // Clear cookies
+        res.clearCookie('refreshToken');
+        res.clearCookie('userId');
+
+        return res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error logging out', error: error.message });
+    }
+}
+
 module.exports = {
-    updateQuantity, refreshToken, 
+    updateQuantity, refreshToken,
     authenticateToken,
     registerUser,
     getAllUsers,
@@ -518,5 +634,5 @@ module.exports = {
     deleteUser,
     addToCart,
     removeFromCart,
-    getCart,checkout, logout
+    getCart, checkout, logout
 };
