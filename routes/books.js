@@ -4,22 +4,20 @@ const upload = require('../uploads/upload');
 
 // const Book = require('../models/bookSchema')
 
-const {getAllBooks,getBookByName,addBook,editStock,deleteBook,getAllAuthors,addBookAuthor,
+const {getAllBooks,getBookByName,addBook,editStock,deleteBook,getAllAuthors,addBookAuthor,authorize, authenticateToken, 
     addAuthor,getBooksAndAuthors,getAveragePriceByAuthor , getBooks, getBookById} = require('./controllers');
 
 
 router.get('/all', getBooks);
 router.get('/name/:name', getBookByName);
 
-router.post('/addBook', upload.single('bookPhoto'), addBook);
+router.post('/addBook', authenticateToken,authorize(['SuperAdmin', 'Bookkeeper']) ,upload.single('bookPhoto'), addBook);
 
 router.post('/addBookAuthor', upload.single('bookPhoto'), addBookAuthor);
 
-router.post('/editStock', editStock);
+router.post('/editStock', authenticateToken,authorize(['SuperAdmin', 'Bookkeeper']), editStock);
 
-router.delete('/deleteBook', deleteBook);
-
-
+router.delete('/deleteBook',authenticateToken,authorize(['SuperAdmin', 'Bookkeeper']),  deleteBook);
 
 router.get('/:id', getBookById);
 

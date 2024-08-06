@@ -53,18 +53,6 @@
             text-align: center;
             margin-top: 15px;
         }
-        .logout-button {
-            background-color: #dc3545;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .logout-button:hover {
-            background-color: #c82333;
-        }
     </style>
 </head>
 <body>
@@ -79,7 +67,6 @@
             <button id="deleteUser">Delete User</button>
             <button id="createAdmin">Create Admin</button> <!-- New button added here -->
         </div>
-        <button class="logout-button" id="logoutButton">Logout</button>
         <div class="message" id="message"></div>
     </div>
 
@@ -108,31 +95,8 @@
             window.location.href = '/deleteUser.html';
         });
 
-        document.getElementById('createAdmin').addEventListener('click', function() {
+        document.getElementById('createAdmin').addEventListener('click', function() { // Event listener for the new button
             window.location.href = '/createAdmin.html';
-        });
-
-        document.getElementById('logoutButton').addEventListener('click', async function() {
-            try {
-                const accessToken = localStorage.getItem('accessToken');
-                const response = await fetch('/users/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`
-                    },
-                    credentials: 'include'  // Include cookies in the request
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    localStorage.removeItem('accessToken'); // Clear the token from localStorage
-                    window.location.href = '/adminLogin.html'; // Redirect to login page
-                } else {
-                    document.getElementById('message').textContent = result.message || 'An error occurred';
-                }
-            } catch (error) {
-                document.getElementById('message').textContent = 'An error occurred. Please try again.';
-            }
         });
     </script>
 </body>

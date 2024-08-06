@@ -37,7 +37,7 @@ function authorize(allowedRoles) {
         // Check if the user's role is included in the allowed roles
         if (!allowedRoles.includes(req.user.role)) {
             console.log("Admin not authorized");
-            return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
+            return res.status(401).json({ message: 'Access denied. Insufficient permissions.' });
         }
 
         next();

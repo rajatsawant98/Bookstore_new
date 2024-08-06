@@ -12,7 +12,39 @@ const TokenBlacklist = require('../Models/blacklist');
 const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
 const JWT_REFRESH_SECRET = 'dfkjvbkd874^%HJKBKJKkjhvjhbkj865KHB&^%^*'
 
+async function authenticateToken(req, res, next) {
+    console.log("authenticateToken getting called");
+    const token = req.headers['authorization']?.split(' ')[1];
 
+    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+
+    // Check if token is blacklisted
+    const blacklistedToken = await TokenBlacklist.findOne({ token });
+    if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: 'Invalid token.' });
+
+        req.user = user;
+        next();
+    });
+}
+
+
+function authorize(allowedRoles) {
+    return (req, res, next) => {
+        console.log("authorize middleware getting called");
+        if (!req.user) return res.status(401).json({ message: 'Authentication required.' });
+
+        // Check if the user's role is included in the allowed roles
+        if (!allowedRoles.includes(req.user.role)) {
+            console.log("Admin not authorized");
+            return res.status(401).json({ message: 'Access denied. Insufficient permissions.' });
+        }
+
+        next();
+    };
+}
 
 
 async function addAdmin(req, res) {
@@ -49,6 +81,7 @@ async function addAdmin(req, res) {
 
         res.status(201).json({ message: 'Admin added successfully' });
     } catch (err) {
+        console.log(err.message);
         res.status(500).json({ message: 'Error adding admin', error: err.message });
     }
 }
@@ -548,23 +581,23 @@ async function updateQuantity(req, res) {
 // }
 
 
-async function authenticateToken(req, res, next) {
-    console.log("authenticateToken getting called");
-    const token = req.headers['authorization']?.split(' ')[1];
+// async function authenticateToken(req, res, next) {
+//     console.log("authenticateToken getting called");
+//     const token = req.headers['authorization']?.split(' ')[1];
 
-    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+//     if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
 
-    // Check if token is blacklisted
-    const blacklistedToken = await TokenBlacklist.findOne({ token });
-    if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
+//     // Check if token is blacklisted
+//     const blacklistedToken = await TokenBlacklist.findOne({ token });
+//     if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: 'Invalid token.' });
+//     jwt.verify(token, JWT_SECRET, (err, user) => {
+//         if (err) return res.status(403).json({ message: 'Invalid token.' });
 
-        req.user = user;
-        next();
-    });
-}
+//         req.user = user;
+//         next();
+//     });
+// }
 
 
 
@@ -623,7 +656,7 @@ async function logout(req, res) {
 
 module.exports = {
     updateQuantity, refreshToken,
-    authenticateToken,
+    authenticateToken,authorize,
     registerUser,
     getAllUsers,
     buyBook,

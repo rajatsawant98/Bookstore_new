@@ -79,21 +79,51 @@
             event.preventDefault();
             const bookName = document.getElementById('bookName').value;
             const countInStock = document.getElementById('countInStock').value;
-
+            let accessToken = localStorage.getItem('accessToken');
+            // console.log(accessToken);
             try {
                 const response = await fetch('/books/editStock', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
                     },
                     body: JSON.stringify({ book_name: bookName, countInStock: parseInt(countInStock) }),
                 });
+
+                if (response.status === 403) {
+                    const refreshResponse = await fetch('/users/refresh-token', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    const refreshResult = await refreshResponse.json();
+
+                    if (refreshResponse.ok) {
+                        localStorage.setItem('accessToken', refreshResult.accessToken);
+                        accessToken = refreshResult.accessToken;
+
+                        
+                        response = await fetch('/books/editStock', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ book_name: bookName, countInStock: parseInt(countInStock) }),
+                });
+                    } else {
+                        console.log("Failed to get response second time");
+                        localStorage.removeItem('accessToken');
+                        window.location.href = '/AdminHome.html';
+                    }
+                }
 
                 const result = await response.json();
                 if (response.ok) {
                     document.getElementById('message').textContent = 'Stock updated successfully';
                 } else {
-                    document.getElementById('message').textContent = result.error || 'An error occurred';
+                    document.getElementById('message').textContent = result.message || 'An error occurred';
                 }
             } catch (error) {
                 document.getElementById('message').textContent = 'An error occurred. Please try again.';

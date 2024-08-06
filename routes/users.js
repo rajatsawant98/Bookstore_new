@@ -2,7 +2,7 @@ const express = require('express')
 const cookieParser = require('cookie-parser');
 const router = express.Router()
 
-const {registerUser,getAllUsers,buyBook,addReview, userLogin, addAdmin,updateQuantity, refreshToken,
+const {registerUser,getAllUsers,buyBook,addReview, userLogin, addAdmin,updateQuantity, refreshToken,authorize, 
     adminLogin, deleteUser, addToCart, removeFromCart,getCart, checkout, logout, authenticateToken} = require('./userControllers');
 
 router.post('/register', registerUser);
@@ -21,9 +21,9 @@ router.post('/buy', authenticateToken, buyBook);
 
 router.post('/review', addReview);
 
-router.delete('/deleteUser', deleteUser);
+router.delete('/deleteUser',authenticateToken , authorize(['SuperAdmin', 'Librarian']) ,deleteUser);
 
-router.post('/admin', addAdmin)
+router.post('/admin', authenticateToken , authorize(['SuperAdmin']) ,addAdmin);
 
 router.post('/adminLogin', adminLogin)
 

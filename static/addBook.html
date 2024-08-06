@@ -107,20 +107,56 @@
             formData.append('price', document.getElementById('price').value);
             formData.append('countInStock', document.getElementById('countInStock').value);
             formData.append('bookPhoto', document.getElementById('bookPhoto').files[0]);
-
+            let accessToken = localStorage.getItem('accessToken');
             console.log(formData)
 
             try {
                 const response = await fetch('/books/addBook', {
                     method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    },
                     body: formData,
                 });
 
+                
+
+                if (response.status === 403) {
+                    const refreshResponse = await fetch('/users/refresh-token', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    const refreshResult = await refreshResponse.json();
+
+                    if (refreshResponse.ok) {
+                        localStorage.setItem('accessToken', refreshResult.accessToken);
+                        accessToken = refreshResult.accessToken;
+
+                        
+                        response = await fetch('/books/addBook', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`
+                        },
+                        body: formData,
+                })
+                    } else {
+                        console.log("Failed to get response second time");
+                        localStorage.removeItem('accessToken');
+                        window.location.href = '/addBook.html';
+                    }
+                }
+
+                
+
                 const result = await response.json();
+                
                 if (response.ok) {
+
                     document.getElementById('message').textContent = 'Book added successfully';
                 } else {
-                    document.getElementById('message').textContent = result.error || 'An error occurred';
+                    document.getElementById('message').textContent = result.message || 'An error occurred';
                 }
             } catch (error) {
                 document.getElementById('message').textContent = 'An error occurred. Please try again.';

@@ -8,7 +8,7 @@ router.get('/', getAllAuthors);
 
 router.post('/addAuthor', authenticateToken , authorize(['SuperAdmin', 'Librarian']), addAuthor);
 
-router.delete('/deleteAuthor', deleteAuthor);
+router.delete('/deleteAuthor',authenticateToken , authorize(['SuperAdmin', 'Librarian']),  deleteAuthor);
 
 router.post('/login', authorLogin);
 

@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const url = 'mongodb://localhost/bookstore_main'
 const cron = require('node-cron');
 const TokenBlacklist = require('./Models/blacklist');
+const bodyParser = require('body-parser');
 
 
 // const authenticateToken = require('./routes/userControllers/authenticateToken');
@@ -41,6 +42,9 @@ con.on('open', () => {
 
 const app = express()
 app.use('/', express.static(path.join(__dirname, 'static')))
+
+app.use(bodyParser.json({ limit: '10mb' }));  // Increase as needed
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

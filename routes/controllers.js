@@ -2,31 +2,47 @@ const { Long } = require('mongodb');
 const Author = require('../Models/author');
 const Book = require('../models/bookSchema');
 const User = require('../Models/user');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const TokenBlacklist = require('../Models/blacklist');
 
-function adminAuth(req, res, next) {
-    if (req.query.actor === "admin") {
+
+const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
+
+
+async function authenticateToken(req, res, next) {
+    console.log("authenticateToken getting called");
+    const token = req.headers['authorization']?.split(' ')[1];
+    
+    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+
+    // Check if token is blacklisted
+    const blacklistedToken = await TokenBlacklist.findOne({ token });
+    if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: 'Invalid token.' });
+
+        req.user = user;
         next();
-    } else {
-        res.send("Not Authorized");
-    }
+    });
 }
 
-function authorAuth(req, res, next) {
-    if (req.query.actor === "author") {
-        next();
-    } else {
-        res.send("Not Authorized");
-    }
-}
 
-function eitherAuth(req, res, next) {
-    if (req.query.actor === "author" || req.query.actor === "admin") {
-        next();
-    } else {
-        res.send("Not Authorized");
-    }
-}
+function authorize(allowedRoles) {
+    return (req, res, next) => {
+        console.log("authorize middleware getting called");
+        if (!req.user) return res.status(401).json({ message: 'Authentication required.' });
 
+        // Check if the user's role is included in the allowed roles
+        if (!allowedRoles.includes(req.user.role)) {
+            console.log("Admin not authorized");
+            return res.status(401).json({ message: 'Access denied. Insufficient permissions.' });
+        }
+
+        next();
+    };
+}
 
 // async function getAllBooks(req, res) {
 //     try{
@@ -112,6 +128,7 @@ async function getBookByName (req, res) {
 
 
 async function addBook(req, res) {
+    console.log("addBook getting called");
     const { isbn, book_name, genre, price, isSold, countInStock, author_name } = req.body; 
     const photo = req.file ? req.file.path : null;
 
@@ -376,9 +393,9 @@ async function addBookAuthor(req, res) {
 }
 
 module.exports = {
-    adminAuth,addBookAuthor,
-    authorAuth,
-    eitherAuth,
+    authenticateToken,
+    authorize,
+    addBookAuthor,
     getAllBooks,
     getBookByName,
     addBook,
