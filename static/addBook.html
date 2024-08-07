@@ -111,7 +111,7 @@
             console.log(formData)
 
             try {
-                const response = await fetch('/books/addBook', {
+                const response = await fetch('/admins/addBook', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
@@ -122,7 +122,7 @@
                 
 
                 if (response.status === 403) {
-                    const refreshResponse = await fetch('/users/refresh-token', {
+                    const refreshResponse = await fetch('/login/refresh-token', {
                         method: 'POST',
                         credentials: 'include'
                     });
@@ -134,7 +134,7 @@
                         accessToken = refreshResult.accessToken;
 
                         
-                        response = await fetch('/books/addBook', {
+                        response = await fetch('/admins/addBook', {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${accessToken}`

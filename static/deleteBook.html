@@ -80,7 +80,7 @@
             const confirmation = confirm('Are you sure you want to delete the book?');
             if (confirmation) {
                 try {
-                    const response = await fetch('/books/deleteBook', {
+                    const response = await fetch('/admins/deleteBook', {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
@@ -89,7 +89,7 @@
                         body: JSON.stringify({ book_name }),
                     });
                     if (response.status === 403) {
-                    const refreshResponse = await fetch('/users/refresh-token', {
+                    const refreshResponse = await fetch('/login/refresh-token', {
                         method: 'POST',
                         credentials: 'include'
                     });
@@ -101,7 +101,7 @@
                         accessToken = refreshResult.accessToken;
 
                         
-                        response = await fetch('/books/deleteBook', {
+                        response = await fetch('/admins/deleteBook', {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',

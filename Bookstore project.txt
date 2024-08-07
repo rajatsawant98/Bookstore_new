@@ -10,7 +10,6 @@ User :
 Can See all the books in the homepage. Buy a book, write a review. See all the reviews.
 Add book to cart, view cart , remove from cart
 
-# yet to be implemented
 Author :
 author login , Can see only his books, Can add book, Delete book, 
 
@@ -23,3 +22,12 @@ Types of admin: Super Admin, Librarian, Bookeeper
 Super Admin: Can create admin, and has all access.
 Librarian: Add author, Delete author , Delete User.
 Bookeeper: Add Book , Edit book Stock , Delete Book.
+
+
+---------------------------------------------------------------------------------------
+
+env variable for database
+
+gitignore
+
+segregation

@@ -127,7 +127,7 @@
         });
 
         if (response.status === 403) {
-            const refreshResponse = await fetch('/users/refresh-token', {
+            const refreshResponse = await fetch('/login/refresh-token', {
                 method: 'POST',
                 credentials: 'include'
             });

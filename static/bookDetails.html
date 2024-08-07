@@ -126,7 +126,7 @@
             }
 
             try {
-                const response = await fetch(`/books/${bookId}`, {
+                const response = await fetch(`/users/book/${bookId}`, {
                     credentials: 'include' // Include credentials to allow cookies
                 });
                 const book = await response.json();
@@ -199,7 +199,7 @@
 
         // If the token is invalid, try to refresh it
         if (response.status === 403) {
-            const refreshResponse = await fetch('/users/refresh-token', {
+            const refreshResponse = await fetch('/login/refresh-token', {
                 method: 'POST',
                 credentials: 'include'
             });
@@ -254,7 +254,7 @@
                 });
 
                 if (response.status === 403) {
-            const refreshResponse = await fetch('/users/refresh-token', {
+            const refreshResponse = await fetch('/login/refresh-token', {
                 method: 'POST',
                 credentials: 'include'
             });

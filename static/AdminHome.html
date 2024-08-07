@@ -115,7 +115,7 @@
         document.getElementById('logoutButton').addEventListener('click', async function() {
             try {
                 const accessToken = localStorage.getItem('accessToken');
-                const response = await fetch('/users/logout', {
+                const response = await fetch('/login/logout', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${accessToken}`

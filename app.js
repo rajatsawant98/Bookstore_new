@@ -1,35 +1,16 @@
-const express = require('express')
-// const session = require('express-session');
-const mongoose =  require('mongoose')
-// const multer = require('multer');
+require('dotenv').config();
+const express = require('express');
+const mongoose =  require('mongoose');
 const path = require('path');
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
-const url = 'mongodb://localhost/bookstore_main'
+
 const cron = require('node-cron');
 const TokenBlacklist = require('./Models/blacklist');
 const bodyParser = require('body-parser');
 
 
-// const authenticateToken = require('./routes/userControllers/authenticateToken');
-
-// const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
-
-
-// async function authenticateToken(req, res, next) {
-//     // console.log("token from cookies: ", req.cookies.token);
-//     // console.log("Token from headers: ", req.headers);
-//     const token = req.cookies.token || req.headers['authorization']?.split(' ')[1]; // Check for token in cookies or Authorization header
-
-//     if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
-
-//     jwt.verify(token, JWT_SECRET, (err, user) => {
-//         if (err) return res.status(403).json({ message: 'Invalid token.' });
-
-//         req.user = user;
-//         next();
-//     });
-// }
+const url = process.env.DATABASE_URL;
 
 mongoose.connect(url, {useNewUrlParser:true})
 
@@ -53,17 +34,16 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
-// app.use('/userhome', authenticateToken, (req, res) => {
-//     res.sendFile(path.join(__dirname, 'userhome.html'));
-// });
+const loginRouter = require('./routes/loginRoutes')
+app.use('/login', loginRouter)
 
-const bookRouter = require('./routes/books')
-app.use('/books', bookRouter)
+const adminRouter = require('./routes/adminActions')
+app.use('/admins', adminRouter)
 
-const authorRouter = require('./routes/authors')
+const authorRouter = require('./routes/authorActions')
 app.use('/authors', authorRouter)
 
-const userRouter = require('./routes/users')
+const userRouter = require('./routes/userActions')
 app.use('/users', userRouter)
 
 cron.schedule('0 13 * * *', async () => {

@@ -79,7 +79,7 @@
             const confirmation = confirm('Are you sure you want to delete the author?');
             if (confirmation) {
                 try {
-                    const response = await fetch('/authors/deleteAuthor', {
+                    const response = await fetch('/admins/deleteAuthor', {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
@@ -88,7 +88,7 @@
                         body: JSON.stringify({ author_name }),
                     });
                     if (response.status === 403) {
-                    const refreshResponse = await fetch('/users/refresh-token', {
+                    const refreshResponse = await fetch('/login/refresh-token', {
                         method: 'POST',
                         credentials: 'include'
                     });
@@ -100,7 +100,7 @@
                         accessToken = refreshResult.accessToken;
 
                         
-                        response = await fetch('/authors/deleteAuthor', {
+                        response = await fetch('/admins/deleteAuthor', {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',

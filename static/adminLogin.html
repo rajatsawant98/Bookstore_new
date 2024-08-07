@@ -81,7 +81,7 @@
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('/users/adminLogin', {
+                const response = await fetch('/login/adminLogin', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
