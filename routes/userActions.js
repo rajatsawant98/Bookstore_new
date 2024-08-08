@@ -11,17 +11,17 @@ router.get('/book/:id', getBookById);
 
 router.post('/buy', authenticateToken, buyBook);
 
-router.post('/review', addReview);
+router.post('/review', authenticateToken,addReview);
 
 router.post('/add-to-cart', authenticateToken, addToCart)
 
-router.post('/remove-from-cart', removeFromCart)
+router.post('/remove-from-cart', authenticateToken,removeFromCart)
 
 router.get('/cart',authenticateToken , getCart)
 
-router.post('/checkout', checkout)
+router.post('/checkout', authenticateToken,checkout)
 
-router.post('/update-quantity', updateQuantity)
+router.post('/update-quantity',authenticateToken , updateQuantity)
 
 
 

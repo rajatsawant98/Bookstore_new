@@ -1,11 +1,8 @@
-admin, password : admin123
-
-user rajats , password : rajats
-
-
+https://github.com/rajatsawant98/Bookstore_new
 --------------------------------------------------------------------------------------
 Admin :
 Can Add author, add book, edit book stock, delete book, delete author, delete user
+
 User : 
 Can See all the books in the homepage. Buy a book, write a review. See all the reviews.
 Add book to cart, view cart , remove from cart
@@ -13,21 +10,12 @@ Add book to cart, view cart , remove from cart
 Author :
 author login , Can see only his books, Can add book, Delete book, 
 
-https://github.com/rajatsawant98/Bookstore_new
 -------------------------------------------------------------------------------------------
-ToDo:
-
 
 Types of admin: Super Admin, Librarian, Bookeeper
 Super Admin: Can create admin, and has all access.
 Librarian: Add author, Delete author , Delete User.
 Bookeeper: Add Book , Edit book Stock , Delete Book.
 
-
 ---------------------------------------------------------------------------------------
 
-env variable for database
-
-gitignore
-
-segregation

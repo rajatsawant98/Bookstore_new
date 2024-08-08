@@ -193,15 +193,46 @@
         }
 
         async function removeFromCart(bookId) {
+            let accessToken = localStorage.getItem('accessToken');
             try {
                 const response = await fetch('/users/remove-from-cart', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
                     },
                     body: JSON.stringify({ bookId }),
                     credentials: 'include'
                 });
+
+                if (response.status === 403) {
+            const refreshResponse = await fetch('/login/refresh-token', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            const refreshResult = await refreshResponse.json();
+            if (refreshResponse.ok) {
+                localStorage.setItem('accessToken', refreshResult.accessToken);
+                accessToken = refreshResult.accessToken;
+
+                // Retry the buy request with the new token
+                response = await fetch('/users/remove-from-cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ bookId }),
+                    credentials: 'include'
+                });
+            } else {
+                localStorage.removeItem('accessToken');
+                window.location.href = '/cart.html';
+                return;
+            }
+        }
+
 
                 const result = await response.json();
                 document.getElementById('message').textContent = result.message;
@@ -214,6 +245,7 @@
         }
 
         async function updateQuantity(bookId, quantity) {
+            let accessToken = localStorage.getItem('accessToken');
             if (quantity <= 0) {
                 removeFromCart(bookId);
                 return;
@@ -223,10 +255,42 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+
                     },
                     body: JSON.stringify({ bookId, quantity }),
                     credentials: 'include'
                 });
+
+                if (response.status === 403) {
+            const refreshResponse = await fetch('/login/refresh-token', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            const refreshResult = await refreshResponse.json();
+            if (refreshResponse.ok) {
+                localStorage.setItem('accessToken', refreshResult.accessToken);
+                accessToken = refreshResult.accessToken;
+
+                // Retry the buy request with the new token
+                response = await fetch('/users/update-quantity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+
+                    },
+                    body: JSON.stringify({ bookId, quantity }),
+                    credentials: 'include'
+                });
+            } else {
+                localStorage.removeItem('accessToken');
+                window.location.href = '/cart.html';
+                return;
+            }
+        }
+
 
                 const result = await response.json();
                 document.getElementById('message').textContent = result.message;
@@ -250,14 +314,42 @@
         }
 
         async function processCheckout() {
+            let accessToken = localStorage.getItem('accessToken');
             try {
                 const response = await fetch('/users/checkout', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
                     },
                     credentials: 'include'
                 });
+                if (response.status === 403) {
+            const refreshResponse = await fetch('/login/refresh-token', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            const refreshResult = await refreshResponse.json();
+            if (refreshResponse.ok) {
+                localStorage.setItem('accessToken', refreshResult.accessToken);
+                accessToken = refreshResult.accessToken;
+
+                // Retry the buy request with the new token
+                response = await fetch('/users/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    credentials: 'include'
+                });
+            } else {
+                localStorage.removeItem('accessToken');
+                window.location.href = '/cart.html';
+                return;
+            }
+        }
 
                 const result = await response.json();
                 document.getElementById('message').textContent = result.message;
