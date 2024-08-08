@@ -1,24 +1,25 @@
 const express = require('express')
 const router = express.Router()
 const upload = require('../uploads/upload');
+const roleConfig = require('./roleConfig');
 
 const { addBook, editStock, deleteBook, deleteUser, addAdmin, addAuthor, deleteAuthor, authorize} = require('../controllers/adminControllers');
 
 const {authenticateToken} = require('../controllers/loginControllers');
 
-router.post('/addBook', authenticateToken,authorize(['SuperAdmin', 'Bookkeeper']) ,upload.single('bookPhoto'), addBook);
+router.post('/addBook', authenticateToken,authorize ,upload.single('bookPhoto'), addBook);
 
-router.post('/editStock', authenticateToken,authorize(['SuperAdmin', 'Bookkeeper']), editStock);
+router.post('/editStock', authenticateToken,authorize, editStock);
 
-router.delete('/deleteBook',authenticateToken,authorize(['SuperAdmin', 'Bookkeeper']),  deleteBook);
+router.delete('/deleteBook',authenticateToken,authorize,  deleteBook);
 
-router.delete('/deleteUser',authenticateToken , authorize(['SuperAdmin', 'Librarian']) ,deleteUser);
+router.delete('/deleteUser',authenticateToken , authorize ,deleteUser);
 
-router.post('/admin', authenticateToken , authorize(['SuperAdmin']) ,addAdmin);
+router.post('/admin', authenticateToken , authorize ,addAdmin);
 
-router.post('/addAuthor', authenticateToken , authorize(['SuperAdmin', 'Librarian']), addAuthor);
+router.post('/addAuthor', authenticateToken , authorize, addAuthor);
 
-router.delete('/deleteAuthor',authenticateToken , authorize(['SuperAdmin', 'Librarian']),  deleteAuthor);
+router.delete('/deleteAuthor',authenticateToken , authorize,  deleteAuthor);
 
 
 module.exports = router

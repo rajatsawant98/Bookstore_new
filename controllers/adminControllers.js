@@ -3,23 +3,28 @@ const Book = require('../models/bookSchema');
 const Admin = require('../Models/admin');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const roleConfig = require('../routes/roleConfig');
 
 
 
 
-function authorize(allowedRoles) {
-    return (req, res, next) => {
-        console.log("authorize middleware getting called");
-        if (!req.user) return res.status(401).json({ message: 'Authentication required.' });
+function authorize(req, res, next) {
+    console.log("authorize middleware getting called");
+    const path = req.originalUrl; // Get the path of the current route
+    console.log("Path :", path);
+    const allowedRoles = roleConfig[path]; // Get the allowed roles for this path from the config
+    console.log("Allowed roles :" , allowedRoles);
 
-        // Check if the user's role is included in the allowed roles
-        if (!allowedRoles.includes(req.user.role)) {
-            console.log("Admin not authorized");
-            return res.status(401).json({ message: 'Access denied. Insufficient permissions.' });
-        }
-        
-        next();
-    };
+    
+    if (!req.user) return res.status(401).json({ message: 'Authentication required.' });
+
+    // Check if the user's role is included in the allowed roles
+    if (!allowedRoles || !allowedRoles.includes(req.user.role)) {
+        console.log("Admin not authorized");
+        return res.status(401).json({ message: 'Access denied. Insufficient permissions.' });
+    }
+
+    next();
 }
 
 

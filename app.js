@@ -1,10 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose =  require('mongoose');
-const path = require('path');
-const fs = require('fs');
+const path = require('path')
 const cookieParser = require('cookie-parser');
-
 const cron = require('node-cron');
 const TokenBlacklist = require('./Models/blacklist');
 const bodyParser = require('body-parser');
@@ -23,11 +21,11 @@ con.on('open', () => {
 
 const app = express()
 app.use('/', express.static(path.join(__dirname, 'static')))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(bodyParser.json({ limit: '10mb' }));  // Increase as needed
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
