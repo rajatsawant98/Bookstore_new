@@ -12,7 +12,7 @@ const JWT_REFRESH_SECRET = 'dfkjvbkd874^%HJKBKJKkjhvjhbkj865KHB&^%^*'
 
 async function registerUser(req, res) {
     try {
-        const { username, email, age, address, gender, password: plainTextPassword } = req.body;
+        const { username, email, age, address, gender, password : plainTextPassword } = req.body;
 
         console.log("Username : ", username);
 
