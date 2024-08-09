@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const upload = require('../uploads/upload');
+const upload = require('../upload');
 const roleConfig = require('./roleConfig');
 
 const { addBook, editStock, deleteBook, deleteUser, addAdmin, addAuthor, deleteAuthor, authorize} = require('../controllers/adminControllers');

@@ -19,3 +19,20 @@ Bookeeper: Add Book , Edit book Stock , Delete Book.
 
 ---------------------------------------------------------------------------------------
 
+Understand multer.
+
+verify-token route. Why?
+
+verify user in authentication
+
+Check role of user and author
+
+Disallow users from doing admin actions.
+
+different route for authentication.
+
+take multiple photos for book 
+
+---------------------------------------------------------------------
+
+Mime type is there to ensure no harmful files are uploaded

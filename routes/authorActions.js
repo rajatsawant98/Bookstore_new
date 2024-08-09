@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const upload = require('../uploads/upload');
+const upload = require('../upload');
 
 const { authenticateToken } = require('../controllers/userControllers')
 
