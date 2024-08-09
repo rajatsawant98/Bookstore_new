@@ -36,14 +36,10 @@ async function getBookById(req, res){
 
 async function buyBook(req, res) {
     try {
-        // console.log("buyBook from server getting called");
-        // console.log('Cookies:', req.cookies);
         const { bookId } = req.body;
         console.log('bookId from body:', bookId);
         const userId = req.user.id;
         console.log("userId from req: ", userId);
-        // const { userId } = req.cookies
-        // console.log('userId from cookies:', userId);
 
         const user = await User.findById(userId);
         if (!user) {

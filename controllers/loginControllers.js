@@ -108,6 +108,7 @@ async function userLogin(req, res) {
 
 async function logout(req, res) {
     try {
+        console.log("Logout Getting called");
         const refreshToken = req.cookies.refreshToken;
         const accessToken = req.headers['authorization']?.split(' ')[1];
 
@@ -119,9 +120,25 @@ async function logout(req, res) {
         const decodedRefreshToken = jwt.decode(refreshToken);
         const decodedAccessToken = jwt.decode(accessToken);
 
+        // Check if decoding was successful and exp field exists
+        if (!decodedRefreshToken || !decodedRefreshToken.exp) {
+            return res.status(400).json({ message: 'Invalid refresh token' });
+        }
+
+        if (!decodedAccessToken || !decodedAccessToken.exp) {
+            return res.status(400).json({ message: 'Invalid access token' });
+        }
+
         // Add tokens to blacklist
-        await TokenBlacklist.create({ token: refreshToken, expiresAt: new Date(decodedRefreshToken.exp * 1000) });
-        await TokenBlacklist.create({ token: accessToken, expiresAt: new Date(decodedAccessToken.exp * 1000) });
+        await TokenBlacklist.create({
+            token: refreshToken,
+            expiresAt: new Date(decodedRefreshToken.exp * 1000)
+        });
+
+        await TokenBlacklist.create({
+            token: accessToken,
+            expiresAt: new Date(decodedAccessToken.exp * 1000)
+        });
 
         // Clear cookies
         res.clearCookie('refreshToken');
@@ -129,7 +146,44 @@ async function logout(req, res) {
 
         return res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
-        return res.status(500).json({ message: 'Error logging out', error: error.message });
+        return res.status(500).json({ error: error.message });
+    }
+}
+
+async function authorLogout(req, res) {
+    try {
+        console.log("Logout Getting called");
+        const refreshToken = req.cookies.refreshToken;
+        // console.log("RefresToken :", refreshToken);
+        const accessToken = req.headers['authorization']?.split(' ')[1];
+        // console.log("accessToken :", accessToken);
+
+
+        if (!refreshToken || !accessToken) {
+            return res.status(400).json({ message: 'No tokens provided' });
+        }
+
+        console.log("Here 1");
+
+        // Decode tokens to get their expiration times
+        const decodedRefreshToken = jwt.decode(refreshToken);
+        const decodedAccessToken = jwt.decode(accessToken);
+
+        console.log("Here 2");
+
+        // Add tokens to blacklist
+        await TokenBlacklist.create({ token: refreshToken, expiresAt: new Date(decodedRefreshToken.exp * 1000) });
+        await TokenBlacklist.create({ token: accessToken, expiresAt: new Date(decodedAccessToken.exp * 1000) });
+
+        console.log("Here 3");
+
+        // Clear cookies
+        res.clearCookie('refreshToken');
+        res.clearCookie('authorId');
+
+        return res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
     }
 }
 
@@ -186,15 +240,28 @@ async function authorLogin(req, res){
     }
 
     if (await bcrypt.compare(password, author.password)) {
-        const token = jwt.sign(
+        const accessToken = jwt.sign(
             { id: author._id, author_name: author.author_name },
-            JWT_SECRET
+            JWT_SECRET,
+            { expiresIn: '15m' }
         );
+
+        const refreshToken = jwt.sign(
+            { id: author._id, author_name: author.author_name },
+            JWT_REFRESH_SECRET,
+            { expiresIn: '7d' } // Refresh token expiration time
+        );
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: false, // Set to true if using HTTPS
+            sameSite: 'strict'
+        });
 
         res.cookie('authorId', author._id.toString());
         
         console.log('Setting cookie: authorId', author._id.toString());
-        return res.status(201).json({ message: 'Author Login successfully', data: token });
+        return res.status(201).json({ message: 'Author Login successfully', accessToken });
         
     } else {
         return res.status(500).json({ message: 'Invalid Username/Password' });
@@ -256,5 +323,5 @@ async function adminLogin(req, res) {
 
 
 module.exports = {
-    registerUser, userLogin, logout, refreshToken, authenticateToken, authorLogin, adminLogin
+    registerUser, userLogin, logout, refreshToken, authenticateToken, authorLogin, adminLogin, authorLogout
 }

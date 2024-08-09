@@ -180,7 +180,8 @@
                     window.location.href = '/login.html'; // Redirect to login page
                 } else {
                     const result = await response.json();
-                    alert('Error logging out: ' + result.message);
+                    console.log(result);
+                    alert('Error logging out: ' , result.message);
                 }
             } catch (error) {
                 alert('An error occurred. Please try again.');

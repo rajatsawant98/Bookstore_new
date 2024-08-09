@@ -92,7 +92,7 @@
 
                 const result = await response.json();
                 if (response.ok) {
-                    localStorage.setItem('token', result.data);
+                    localStorage.setItem('accessToken', result.accessToken);
                     document.getElementById('message').textContent = result.message;
                     window.location.href = '/authorhome.html'; // Redirect to author homepage on successful login
                 } else {
