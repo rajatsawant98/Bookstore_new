@@ -298,7 +298,7 @@
                     fetchCart(); // Refresh cart items
                 }
             } catch (error) {
-                document.getElementById('message').textContent = 'An error occurred. Please try again.';
+                document.getElementById('message').textContent = result.error;
             }
         }
 

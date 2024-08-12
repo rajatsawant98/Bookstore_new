@@ -45,14 +45,17 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
+        }
+        .book-item div {
+            display: flex;
+            flex-direction: column;
         }
         .book-item img {
             max-width: 150px;
             max-height: 150px;
             border-radius: 8px;
-            object-fit: cover;
         }
         .message {
             text-align: center;
@@ -178,7 +181,7 @@
                 } else {
                     const result = await response.json();
                     console.log(result);
-                    alert('Error logging out: ' + result.message);
+                    alert('Error logging out: ' , result.message);
                 }
             } catch (error) {
                 alert('An error occurred. Please try again.');
@@ -219,13 +222,11 @@
                 bookItem.className = 'book-item';
                 bookItem.innerHTML = `
                     <div>
-                        <strong>Book Name:</strong> ${book.book_name}<br>
-                        <strong>Author:</strong> ${book.author.author_name}<br>
+                        <strong>Book Name:</strong> ${book.book_name}
+                        <strong>Author:</strong> ${book.author.author_name}
                         <strong>Price:</strong> $${book.price}
                     </div>
-                    <div>
-                        ${book.photos.map(photo => `<img src="${photo}" alt="Book Photo">`).join('')}
-                    </div>
+                    <img src="${book.photo}" alt="Book Photo">
                     <div>
                         <button class="buy-button" data-book-id="${book._id}">Buy</button>
                         <button class="review-button" data-book-id="${book._id}">Review</button>
@@ -283,7 +284,7 @@
                     if (refreshResponse.ok) {
                         localStorage.setItem('accessToken', refreshResult.accessToken);
                         accessToken = refreshResult.accessToken;
-
+                        
                         response = await fetch('/users/buy', {
                             method: 'POST',
                             headers: {
@@ -296,53 +297,66 @@
                     } else {
                         localStorage.removeItem('accessToken');
                         window.location.href = '/login.html';
-                        return;
                     }
                 }
 
                 if (response.ok) {
                     const result = await response.json();
-                    alert(result.message || 'Book purchased successfully');
+                    alert('Book purchased successfully!');
                 } else {
                     const result = await response.json();
-                    alert(result.message || 'Error purchasing book');
+                    alert('Error buying book: ' + result.message);
                 }
             } catch (error) {
                 alert('An error occurred. Please try again.');
             }
         }
 
-        function reviewBook(event) {
-            const bookId = event.target.getAttribute('data-book-id');
-            window.location.href = `/reviews.html?bookId=${bookId}`;
-        }
+        async function reviewBook(event) {
+    console.log("reviewBook in client getting called");
+    const button = event.target;
+    const bookId = button.getAttribute('data-book-id');
+    window.location.href = `/reviews.html?bookId=${bookId}`;
+}
 
-        function viewBook(event) {
-            const bookId = event.target.getAttribute('data-book-id');
+
+        async function viewBook(event) {
+            console.log("viewBook in client getting called");
+            const button = event.target;
+            const bookId = button.getAttribute('data-book-id');
             window.location.href = `/bookDetails.html?bookId=${bookId}`;
         }
 
         function populateAuthorFilter(books) {
             const authorFilter = document.getElementById('authorFilter');
             const authors = [...new Set(books.map(book => book.author.author_name))];
+
             authors.forEach(author => {
                 const option = document.createElement('option');
                 option.value = author;
                 option.textContent = author;
                 authorFilter.appendChild(option);
             });
+
+            authorFilter.addEventListener('change', filterBooksByAuthor);
         }
 
-        document.getElementById('authorFilter').addEventListener('change', function(event) {
-            const selectedAuthor = event.target.value;
-            const filteredBooks = books.filter(book => book.author.author_name === selectedAuthor);
+        function filterBooksByAuthor() {
+            const authorFilter = document.getElementById('authorFilter').value;
+            const filteredBooks = authorFilter ? books.filter(book => book.author.author_name === authorFilter) : books;
             displayBooks(filteredBooks);
-        });
+        }
 
-        document.getElementById('priceSort').addEventListener('change', function(event) {
-            const sortOrder = event.target.value;
-            const sortedBooks = [...books].sort((a, b) => {
-                return sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
+        document.getElementById('priceSort').addEventListener('change', function() {
+            const sortOrder = this.value;
+            const sortedBooks = books.slice().sort((a, b) => {
+                if (sortOrder === 'asc') {
+                    return a.price - b.price;
+                } else if (sortOrder === 'desc') {
+                    return b.price - a.price;
+                } else {
+                    return 0;
+                }
             });
             displayBooks(sortedBooks);
         });

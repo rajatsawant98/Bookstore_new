@@ -103,39 +103,39 @@
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
-        window.location.href = '/login.html'; // Redirect if no token is found
-    } else {
-        fetch('/verify-token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
-            }
-        })
-        .then(response => response.json())
-        .then(async data => {
-            if (!data.valid) {
-                const refreshResponse = await fetch('/refresh-token', {
-                    method: 'POST',
-                    credentials: 'same-origin'
-                });
+// document.addEventListener('DOMContentLoaded', function() {
+//     const accessToken = localStorage.getItem('accessToken');
+//     if (!accessToken) {
+//         window.location.href = '/login.html'; // Redirect if no token is found
+//     } else {
+//         fetch('/verify-token', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//                 'Authorization': `Bearer ${accessToken}`
+//             }
+//         })
+//         .then(response => response.json())
+//         .then(async data => {
+//             if (!data.valid) {
+//                 const refreshResponse = await fetch('/refresh-token', {
+//                     method: 'POST',
+//                     credentials: 'same-origin'
+//                 });
 
-                const refreshResult = await refreshResponse.json();
-                if (refreshResponse.ok) {
-                    localStorage.setItem('accessToken', refreshResult.accessToken);
-                    // Optionally, reload the page to retry the failed request
-                    window.location.reload();
-                } else {
-                    localStorage.removeItem('accessToken');
-                    window.location.href = '/login.html';
-                }
-            }
-        });
-    }
-});
+//                 const refreshResult = await refreshResponse.json();
+//                 if (refreshResponse.ok) {
+//                     localStorage.setItem('accessToken', refreshResult.accessToken);
+//                     // Optionally, reload the page to retry the failed request
+//                     window.location.reload();
+//                 } else {
+//                     localStorage.removeItem('accessToken');
+//                     window.location.href = '/login.html';
+//                 }
+//             }
+//         });
+//     }
+// });
     </script>
 </body>
 </html>

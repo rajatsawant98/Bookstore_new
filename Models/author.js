@@ -19,6 +19,13 @@ const authorSchema = new mongoose.Schema({
     gender: {
         type: String,
         required: true
+    },
+    role: {
+        type: String,
+        enum: ['author'],
+        required: true,
+        default: 'author',
+        immutable: true
     }
 
 })

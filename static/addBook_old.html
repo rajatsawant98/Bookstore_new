@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +15,6 @@
             margin: 0;
             background-color: #f4f4f4;
         }
-
         .form-container {
             background: #fff;
             padding: 20px;
@@ -25,21 +23,17 @@
             max-width: 400px;
             width: 100%;
         }
-
         h1 {
             text-align: center;
             margin-bottom: 20px;
         }
-
         .form-group {
             margin-bottom: 15px;
         }
-
         .form-group label {
             display: block;
             margin-bottom: 5px;
         }
-
         .form-group input,
         .form-group select {
             width: 100%;
@@ -47,25 +41,21 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-
         .form-group input[type="submit"] {
             background-color: #007bff;
             color: white;
             border: none;
             cursor: pointer;
         }
-
         .form-group input[type="submit"]:hover {
             background-color: #0056b3;
         }
-
         .message {
             text-align: center;
             margin-top: 15px;
         }
     </style>
 </head>
-
 <body>
     <div class="form-container">
         <h1>Add Book</h1>
@@ -95,8 +85,8 @@
                 <input type="number" id="countInStock" name="countInStock" required>
             </div>
             <div class="form-group">
-                <label for="bookPhotos">Book Photos</label>
-                <input type="file" id="bookPhotos" name="bookPhotos[]" accept="image/*" multiple required>
+                <label for="bookPhoto">Book Photo</label>
+                <input type="file" id="bookPhoto" name="bookPhoto" accept="image/*" required>
             </div>
             <div class="form-group">
                 <input type="submit" value="Add Book">
@@ -106,7 +96,7 @@
     </div>
 
     <script>
-        document.getElementById('addBookForm').addEventListener('submit', async function (event) {
+        document.getElementById('addBookForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
             const formData = new FormData();
@@ -116,22 +106,20 @@
             formData.append('author_name', document.getElementById('authorName').value);
             formData.append('price', document.getElementById('price').value);
             formData.append('countInStock', document.getElementById('countInStock').value);
-
-            const photos = document.getElementById('bookPhotos').files;
-            for (let i = 0; i < photos.length; i++) {
-                formData.append('bookPhotos[]', photos[i]);  // Updated this line
-            }
-
+            formData.append('bookPhoto', document.getElementById('bookPhoto').files[0]);
             let accessToken = localStorage.getItem('accessToken');
+            console.log(formData)
 
             try {
-                let response = await fetch('/admins/addBook', {
+                const response = await fetch('/admins/addBook', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
                     },
                     body: formData,
                 });
+
+                
 
                 if (response.status === 403) {
                     const refreshResponse = await fetch('/login/refresh-token', {
@@ -145,13 +133,14 @@
                         localStorage.setItem('accessToken', refreshResult.accessToken);
                         accessToken = refreshResult.accessToken;
 
+                        
                         response = await fetch('/admins/addBook', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${accessToken}`
-                            },
-                            body: formData,
-                        });
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`
+                        },
+                        body: formData,
+                })
                     } else {
                         console.log("Failed to get response second time");
                         localStorage.removeItem('accessToken');
@@ -159,9 +148,12 @@
                     }
                 }
 
-                const result = await response.json();
+                
 
+                const result = await response.json();
+                
                 if (response.ok) {
+
                     document.getElementById('message').textContent = 'Book added successfully';
                 } else {
                     document.getElementById('message').textContent = result.message || 'An error occurred';
@@ -172,5 +164,4 @@
         });
     </script>
 </body>
-
 </html>

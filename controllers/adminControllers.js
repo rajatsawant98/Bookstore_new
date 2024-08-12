@@ -8,30 +8,28 @@ const roleConfig = require('../routes/roleConfig');
 
 
 
-function authorize(req, res, next) {
-    console.log("authorize middleware getting called");
-    const path = req.originalUrl; // Get the path of the current route
-    console.log("Path :", path);
-    const allowedRoles = roleConfig[path]; // Get the allowed roles for this path from the config
-    console.log("Allowed roles :" , allowedRoles);
+// function authorize(req, res, next) {
+//     const path = req.originalUrl; // Get the path of the current route
+//     const allowedRoles = roleConfig[path]; // Get the allowed roles for this path from the config
 
     
-    if (!req.user) return res.status(401).json({ message: 'Authentication required.' });
+//     if (!req.user) return res.status(401).json({ message: 'Authentication required.' });
 
-    // Check if the user's role is included in the allowed roles
-    if (!allowedRoles || !allowedRoles.includes(req.user.role)) {
-        console.log("Admin not authorized");
-        return res.status(401).json({ message: 'Access denied. Insufficient permissions.' });
-    }
+//     // Check if the user's role is included in the allowed roles
+//     if (!allowedRoles || !allowedRoles.includes(req.user.role)) {
+//         console.log("Admin not authorized");
+//         return res.status(401).json({ message: 'Access denied. Insufficient permissions.' });
+//     }
 
-    next();
-}
+//     next();
+// }
 
 
 async function addBook(req, res) {
     console.log("addBook getting called");
     const { isbn, book_name, genre, price, isSold, countInStock, author_name } = req.body; 
-    const photo = req.file ? req.file.path : null;
+    const photos = req.files ? req.files.map(file => file.path) : [];
+
 
     try {
         const author = await Author.findOne({ author_name });
@@ -48,7 +46,7 @@ async function addBook(req, res) {
             price,
             isSold,
             countInStock,
-            photo
+            photos
         });
 
         const savedBook = await book.save();
@@ -232,5 +230,5 @@ async function deleteAuthor(req, res) {
 
 
 module.exports = {
-     addBook, editStock, deleteBook, deleteUser, addAdmin, addAuthor, deleteAuthor, authorize
+     addBook, editStock, deleteBook, deleteUser, addAdmin, addAuthor, deleteAuthor
 };

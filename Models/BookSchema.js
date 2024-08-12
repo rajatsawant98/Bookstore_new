@@ -50,11 +50,10 @@ const bookSchema = new mongoose.Schema({
         default : 0
     },
     reviews: [reviewSchema],
-    photo: {
-        type: String, // Store the path to the uploaded photo
+    photos: [{ 
+        type: String,
         required: false
-    }
-
+    }]
 }, { timestamps: true })
 
 

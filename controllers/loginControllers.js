@@ -4,6 +4,7 @@ const Admin = require('../Models/admin');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const TokenBlacklist = require('../Models/blacklist');
+const roleConfig = require('../routes/roleConfig');
 
 
 const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
@@ -77,24 +78,18 @@ async function userLogin(req, res) {
     
     if (await bcrypt.compare(password, user.password)) {
         const accessToken = jwt.sign(
-            { id: user._id, username: user.username },
+            { id: user._id, username: user.username, role:user.role },
             JWT_SECRET,
             { expiresIn: '15m' } // Access token expiration time
         );
 
         const refreshToken = jwt.sign(
-            { id: user._id, username: user.username },
+            { id: user._id, username: user.username, role:user.role },
             JWT_REFRESH_SECRET,
             { expiresIn: '7d' } // Refresh token expiration time
         );
 
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: false, // Set to true if using HTTPS
-            sameSite: 'strict'
-        });
-
-        res.cookie('userId', user._id.toString(), {
             httpOnly: true,
             secure: false, // Set to true if using HTTPS
             sameSite: 'strict'
@@ -202,7 +197,7 @@ async function refreshToken(req, res) {
         if (err) return res.status(403).json({ message: 'Invalid refresh token.' });
 
         const accessToken = jwt.sign(
-            { id: user.id, username: user.username },
+            { id: user.id, username: user.username , role: user.role},
             JWT_SECRET,
             { expiresIn: '15m' }
         );
@@ -212,23 +207,43 @@ async function refreshToken(req, res) {
 }
 
 
+
+
 async function authenticateToken(req, res, next) {
     console.log("authenticateToken getting called");
     const token = req.headers['authorization']?.split(' ')[1];
 
-    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+    if (!token) {
+        return res.status(401).json({ message: 'Access denied. No token provided.' });
+    }
 
     // Check if token is blacklisted
     const blacklistedToken = await TokenBlacklist.findOne({ token });
-    if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
+    if (blacklistedToken) {
+        return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
+    }
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: 'Invalid token.' });
+        if (err) {
+            return res.status(403).json({ message: 'Invalid token.' });
+        }
 
         req.user = user;
-        next();
+
+        const path = req.originalUrl; // Get the path of the current route
+        console.log("Path:", path);
+        const allowedRoles = roleConfig[path]; // Get the allowed roles for this path from the config
+        console.log("allowedRoles:", allowedRoles);
+
+        if (!allowedRoles || !allowedRoles.includes(req.user.role)) {
+            console.log("User not authorized");
+            return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
+        }
+        console.log("Authentication and Authorization Complete");
+        next(); // Call next only if everything is fine
     });
 }
+
 
 
 async function authorLogin(req, res){
@@ -241,13 +256,13 @@ async function authorLogin(req, res){
 
     if (await bcrypt.compare(password, author.password)) {
         const accessToken = jwt.sign(
-            { id: author._id, author_name: author.author_name },
+            { id: author._id, author_name: author.author_name, role:'author' },
             JWT_SECRET,
             { expiresIn: '15m' }
         );
 
         const refreshToken = jwt.sign(
-            { id: author._id, author_name: author.author_name },
+            { id: author._id, author_name: author.author_name, role:'author' },
             JWT_REFRESH_SECRET,
             { expiresIn: '7d' } // Refresh token expiration time
         );
@@ -297,12 +312,6 @@ async function adminLogin(req, res) {
             );
 
             res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: false, // Set to true if using HTTPS
-                sameSite: 'strict'
-            });
-
-            res.cookie('adminId', admin._id.toString(), {
                 httpOnly: true,
                 secure: false, // Set to true if using HTTPS
                 sameSite: 'strict'

@@ -35,6 +35,7 @@ async function getBookById(req, res){
 }
 
 async function buyBook(req, res) {
+    console.log("BuyBook Getting called");
     try {
         const { bookId } = req.body;
         console.log('bookId from body:', bookId);
@@ -72,7 +73,7 @@ async function buyBook(req, res) {
 
 async function addReview(req, res) {
     const { rating, comment, bookId } = req.body; // Retrieve bookId from the body
-    const { userId } = req.cookies;
+    const userId = req.user.id;
 
     console.log("BookId from body : ", bookId);
     console.log("userId from cookies : ", userId);
@@ -129,7 +130,7 @@ async function addToCart(req, res) {
 
 async function removeFromCart(req, res) {
     const { bookId } = req.body;
-    const { userId } = req.cookies
+    const userId = req.user.id;
 
     try {
         const user = await User.findById(userId);
@@ -179,8 +180,7 @@ async function getCart(req, res) {
 
 
 async function checkout(req, res) {
-    const { userId } = req.cookies
-    console.log('in checkout userId from cookies:', userId);
+    const userId = req.user.id;
 
     try {
         const user = await User.findById(userId).populate('booksInCart.book');
@@ -225,7 +225,7 @@ async function checkout(req, res) {
 
 async function updateQuantity(req, res) {
     const { bookId, quantity } = req.body;
-    const { userId } = req.cookies
+    const userId = req.user.id;
 
     try {
         const user = await User.findById(userId);
@@ -238,7 +238,7 @@ async function updateQuantity(req, res) {
             res.status(404).json({ message: 'Book not found in cart' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred. Please try again.' });
+        res.status(500).json({error , message: 'An error occurred. Please try again.' });
     }
 }
 

@@ -38,7 +38,14 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Book'
     }],
-    booksInCart : [cartSchema]
+    booksInCart : [cartSchema],
+    role: {
+        type: String,
+        enum: ['user'],
+        required: true,
+        default: 'user',
+        immutable: true
+    }
 
 })
 
