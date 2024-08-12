@@ -8,7 +8,6 @@ const TokenBlacklist = require('../Models/blacklist');
 
 
 const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
-const JWT_REFRESH_SECRET = 'dfkjvbkd874^%HJKBKJKkjhvjhbkj865KHB&^%^*'
 
 
 async function getBooks(req, res) {

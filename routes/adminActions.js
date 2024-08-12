@@ -11,15 +11,15 @@ router.post('/addBook', authenticateToken,upload.array('bookPhotos[]', 5), addBo
 
 router.post('/editStock', authenticateToken, editStock);
 
-router.delete('/deleteBook',authenticateToken,  deleteBook);
+router.delete('/deleteBook', authenticateToken, deleteBook);
 
-router.delete('/deleteUser',authenticateToken ,deleteUser);
+router.delete('/deleteUser', authenticateToken, deleteUser);
 
-router.post('/admin', authenticateToken ,addAdmin);
+router.post('/admin', authenticateToken, addAdmin);
 
-router.post('/addAuthor', authenticateToken , addAuthor);
+router.post('/addAuthor', authenticateToken, addAuthor);
 
-router.delete('/deleteAuthor',authenticateToken ,  deleteAuthor);
+router.delete('/deleteAuthor', authenticateToken, deleteAuthor);
 
 
 module.exports = router

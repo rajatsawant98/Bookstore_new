@@ -3,11 +3,6 @@ const Book = require('../models/bookSchema');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const TokenBlacklist = require('../Models/blacklist');
-
-
-const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787';
-
 
 async function addBookAuthor(req, res) {
     const { isbn, book_name, genre, price, isSold, countInStock } = req.body; 

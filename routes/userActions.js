@@ -25,5 +25,4 @@ router.post('/checkout', authenticateToken,checkout)
 router.post('/update-quantity',authenticateToken , updateQuantity)
 
 
-
 module.exports = router

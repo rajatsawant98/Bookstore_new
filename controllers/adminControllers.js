@@ -7,24 +7,6 @@ const roleConfig = require('../routes/roleConfig');
 
 
 
-
-// function authorize(req, res, next) {
-//     const path = req.originalUrl; // Get the path of the current route
-//     const allowedRoles = roleConfig[path]; // Get the allowed roles for this path from the config
-
-    
-//     if (!req.user) return res.status(401).json({ message: 'Authentication required.' });
-
-//     // Check if the user's role is included in the allowed roles
-//     if (!allowedRoles || !allowedRoles.includes(req.user.role)) {
-//         console.log("Admin not authorized");
-//         return res.status(401).json({ message: 'Access denied. Insufficient permissions.' });
-//     }
-
-//     next();
-// }
-
-
 async function addBook(req, res) {
     console.log("addBook getting called");
     const { isbn, book_name, genre, price, isSold, countInStock, author_name } = req.body; 
