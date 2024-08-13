@@ -6,8 +6,6 @@ const {buyBook,addReview, updateQuantity,
 const {authenticateToken} = require('../controllers/loginControllers')
 
 
-// router.get('/all', getBooks);
-
 router.post('/buy', authenticateToken, buyBook);
 
 router.post('/review', authenticateToken,addReview);

@@ -13,7 +13,7 @@ const JWT_REFRESH_SECRET = 'dfkjvbkd874^%HJKBKJKkjhvjhbkj865KHB&^%^*'
 
 async function registerUser(req, res) {
     try {
-        const { username, email, age, address, gender, password : plainTextPassword } = req.body;
+        const { username, email, age, address, gender, password: plainTextPassword } = req.body;
 
         console.log("Username : ", username);
 
@@ -75,16 +75,16 @@ async function userLogin(req, res) {
     if (!user) {
         return res.status(400).json({ message: 'Invalid username/password' });
     }
-    
+
     if (await bcrypt.compare(password, user.password)) {
         const accessToken = jwt.sign(
-            { id: user._id, username: user.username, role:user.role },
+            { id: user._id, username: user.username, role: user.role },
             JWT_SECRET,
             { expiresIn: '15m' } // Access token expiration time
         );
 
         const refreshToken = jwt.sign(
-            { id: user._id, username: user.username, role:user.role },
+            { id: user._id, username: user.username, role: user.role },
             JWT_REFRESH_SECRET,
             { expiresIn: '7d' } // Refresh token expiration time
         );
@@ -197,7 +197,7 @@ async function refreshToken(req, res) {
         if (err) return res.status(403).json({ message: 'Invalid refresh token.' });
 
         const accessToken = jwt.sign(
-            { id: user.id, username: user.username , role: user.role},
+            { id: user.id, username: user.username, role: user.role },
             JWT_SECRET,
             { expiresIn: '15m' }
         );
@@ -240,14 +240,14 @@ async function authenticateToken(req, res, next) {
             return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
         }
         console.log("Authentication and Authorization Complete");
-        next(); // Call next only if everything is fine
+        next();
     });
 }
 
 
 
 
-async function authorLogin(req, res){
+async function authorLogin(req, res) {
     const { author_name, password } = req.body;
     const author = await Author.findOne({ author_name });
 
@@ -257,13 +257,13 @@ async function authorLogin(req, res){
 
     if (await bcrypt.compare(password, author.password)) {
         const accessToken = jwt.sign(
-            { id: author._id, author_name: author.author_name, role : author.role },
+            { id: author._id, author_name: author.author_name, role: author.role },
             JWT_SECRET,
             { expiresIn: '15m' }
         );
 
         const refreshToken = jwt.sign(
-            { id: author._id, author_name: author.author_name, role : author.role },
+            { id: author._id, author_name: author.author_name, role: author.role },
             JWT_REFRESH_SECRET,
             { expiresIn: '7d' } // Refresh token expiration time
         );
@@ -275,7 +275,7 @@ async function authorLogin(req, res){
         });
 
         return res.status(201).json({ message: 'Author Login successfully', accessToken });
-        
+
     } else {
         return res.status(500).json({ message: 'Invalid Username/Password' });
     }
@@ -298,13 +298,13 @@ async function adminLogin(req, res) {
 
         if (isPasswordCorrect) {
             const accessToken = jwt.sign(
-                { id: admin._id, username: admin.username, role:admin.role },
+                { id: admin._id, username: admin.username, role: admin.role },
                 JWT_SECRET,
                 { expiresIn: '15m' } // Access token expiration time
             );
 
             const refreshToken = jwt.sign(
-                { id: admin._id, username: admin.username, role:admin.role },
+                { id: admin._id, username: admin.username, role: admin.role },
                 JWT_REFRESH_SECRET,
                 { expiresIn: '7d' } // Refresh token expiration time
             );
