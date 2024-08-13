@@ -246,6 +246,7 @@ async function authenticateToken(req, res, next) {
 
 
 
+
 async function authorLogin(req, res){
     const { author_name, password } = req.body;
     const author = await Author.findOne({ author_name });
@@ -256,13 +257,13 @@ async function authorLogin(req, res){
 
     if (await bcrypt.compare(password, author.password)) {
         const accessToken = jwt.sign(
-            { id: author._id, author_name: author.author_name, role:'author' },
+            { id: author._id, author_name: author.author_name, role : author.role },
             JWT_SECRET,
             { expiresIn: '15m' }
         );
 
         const refreshToken = jwt.sign(
-            { id: author._id, author_name: author.author_name, role:'author' },
+            { id: author._id, author_name: author.author_name, role : author.role },
             JWT_REFRESH_SECRET,
             { expiresIn: '7d' } // Refresh token expiration time
         );
@@ -273,9 +274,6 @@ async function authorLogin(req, res){
             sameSite: 'strict'
         });
 
-        res.cookie('authorId', author._id.toString());
-        
-        console.log('Setting cookie: authorId', author._id.toString());
         return res.status(201).json({ message: 'Author Login successfully', accessToken });
         
     } else {

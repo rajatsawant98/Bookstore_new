@@ -7,8 +7,8 @@ const jwt = require('jsonwebtoken');
 async function addBookAuthor(req, res) {
     const { isbn, book_name, genre, price, isSold, countInStock } = req.body; 
     const photo = req.file ? req.file.path : null;
-    const { authorId } = req.cookies
-    console.log("authorId from cookies : " , authorId )
+    const authorId = req.user.id;
+    console.log("authorId from accessToken : " , authorId )
 
     try {
         const author = await Author.findById(authorId);
@@ -41,8 +41,8 @@ async function addBookAuthor(req, res) {
 
 async function getAuthorBooks(req, res) {
     try {
-        const { authorId } = req.cookies
-        console.log('authorId from cookies:', authorId);
+        const authorId = req.user.id;
+        console.log('authorId from accesstoken :', authorId);
 
         // Find books by the author
         const books = await Book.find({ author: authorId });
@@ -58,8 +58,8 @@ async function getAuthorBooks(req, res) {
 
 async function deleteBook (req, res) {
     try {
-        const { bookId } = req.params;
-        const { authorId } = req.cookies;
+        const { bookId } = req.body;
+        const authorId = req.user.id;
 
         // Verify if the book exists and belongs to the author
         const book = await Book.findOne({ _id: bookId, author: authorId });
@@ -77,11 +77,26 @@ async function deleteBook (req, res) {
     }
 }
 
+async function getBookById(req, res) {
+    const { bookId } = req.body;
+
+    try {
+        const book = await Book.findById(bookId).populate('author').exec();
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+        res.json(book);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching book details', error: error.message });
+    }
+}
+
 
 
 
 module.exports = {
     addBookAuthor, 
     getAuthorBooks,
-    deleteBook
+    deleteBook,
+    getBookById
     };

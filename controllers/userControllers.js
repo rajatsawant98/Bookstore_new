@@ -20,18 +20,7 @@ async function getBooks(req, res) {
     }
 }
 
-async function getBookById(req, res){
 
-    try {
-        const book = await Book.findById(req.params.id).populate('author').exec();
-        if (!book) {
-            return res.status(404).json({ message: 'Book not found' });
-        }
-        res.json(book);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching book details', error: error.message });
-    }
-}
 
 async function buyBook(req, res) {
     console.log("BuyBook Getting called");
@@ -245,30 +234,29 @@ async function updateQuantity(req, res) {
 
 
 
-async function authenticateToken(req, res, next) {
-    console.log("authenticateToken getting called");
-    const token = req.headers['authorization']?.split(' ')[1];
+// async function authenticateToken(req, res, next) {
+//     console.log("authenticateToken getting called");
+//     const token = req.headers['authorization']?.split(' ')[1];
 
-    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+//     if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
 
-    // Check if token is blacklisted
-    const blacklistedToken = await TokenBlacklist.findOne({ token });
-    if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
+//     // Check if token is blacklisted
+//     const blacklistedToken = await TokenBlacklist.findOne({ token });
+//     if (blacklistedToken) return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: 'Invalid token.' });
+//     jwt.verify(token, JWT_SECRET, (err, user) => {
+//         if (err) return res.status(403).json({ message: 'Invalid token.' });
 
-        req.user = user;
-        next();
-    });
-}
+//         req.user = user;
+//         next();
+//     });
+// }
 
 
 
 module.exports = {
     updateQuantity,
-    authenticateToken,
-    buyBook,getBooks,getBookById,
+    buyBook,getBooks,
     addReview,
     addToCart,
     removeFromCart,

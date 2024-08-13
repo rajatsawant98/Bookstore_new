@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
             margin: 0;
             background-color: #f4f4f4;
         }
+
         .book-details-container {
             background: #fff;
             padding: 20px;
@@ -24,20 +26,25 @@
             width: 100%;
             text-align: center;
         }
+
         h1 {
             margin-bottom: 20px;
         }
+
         .book-info {
             text-align: left;
             margin-bottom: 15px;
         }
+
         .book-info strong {
             display: block;
             margin-bottom: 5px;
         }
+
         .reviews {
             margin-top: 20px;
         }
+
         .review {
             background: #f9f9f9;
             padding: 10px;
@@ -45,18 +52,21 @@
             margin-bottom: 10px;
             border: 1px solid #ddd;
         }
+
         .message {
             text-align: center;
             margin-top: 15px;
         }
     </style>
 </head>
+
 <body>
     <div class="book-details-container">
         <h1>Book Details</h1>
         <div class="book-info" id="bookInfo">
             <!-- Book details will be dynamically populated here -->
         </div>
+        <button id="removeBookButton">Remove Book</button> <!-- Remove Button -->
         <div class="reviews" id="reviews">
             <!-- Reviews will be dynamically populated here -->
         </div>
@@ -70,6 +80,7 @@
         }
 
         async function fetchBookDetails() {
+            const accessToken = localStorage.getItem('accessToken');
             const bookId = getQueryParameter('bookId');
             if (!bookId) {
                 document.getElementById('message').textContent = 'No book ID provided.';
@@ -77,11 +88,47 @@
             }
 
             try {
-                const response = await fetch(`/users/book/${bookId}`, {
-                    credentials: 'include' // Include credentials to allow cookies
-                });
-                const book = await response.json();
+                const response = await fetch('/authors/book', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
 
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ bookId: bookId })
+                });
+                if (response.status === 403) {
+                    const refreshResponse = await fetch('/login/refresh-token', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    const refreshResult = await refreshResponse.json();
+                    if (refreshResponse.ok) {
+                        localStorage.setItem('accessToken', refreshResult.accessToken);
+                        accessToken = refreshResult.accessToken;
+
+                        // Retry the fetch request with the new token
+                        response = await fetch('/authors/book', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({ bookId: bookId })
+                        });
+                    } else {
+                        localStorage.removeItem('accessToken');
+                        window.location.href = '/authorHome.html';
+                        return;
+                    }
+                }
+
+
+                const book = await response.json();
                 if (response.ok) {
                     displayBookDetails(book);
                 } else {
@@ -114,10 +161,69 @@
             } else {
                 reviewsContainer.innerHTML = '<p>No reviews available for this book.</p>';
             }
+
+            // Event listener for Remove Button
+            document.getElementById('removeBookButton').addEventListener('click', async function () {
+                let accessToken = localStorage.getItem('accessToken');
+                const bookId = getQueryParameter('bookId');
+                const userConfirmed = confirm("Are you sure you want to remove this book?");
+                if (!userConfirmed) return;
+
+                try {
+                    let response = await fetch('/authors/removeBook', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${accessToken}`
+                        },
+                        credentials: 'include', // Include credentials to allow cookies
+                        body: JSON.stringify({ bookId: bookId }) // Pass bookId in body
+                    });
+
+                    if (response.status === 403) {
+                        const refreshResponse = await fetch('/login/refresh-token', {
+                            method: 'POST',
+                            credentials: 'include'
+                        });
+
+                        const refreshResult = await refreshResponse.json();
+                        if (refreshResponse.ok) {
+                            localStorage.setItem('accessToken', refreshResult.accessToken);
+                            accessToken = refreshResult.accessToken;
+
+                            // Retry the remove request with the new token
+                            response = await fetch('/authors/removeBook', {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${accessToken}`
+                                },
+                                credentials: 'include', // Include credentials to allow cookies
+                                body: JSON.stringify({ bookId: bookId }) // Pass bookId in body
+                            });
+                        } else {
+                            localStorage.removeItem('accessToken');
+                            window.location.href = '/authorHome.html';
+                            return;
+                        }
+                    }
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        document.getElementById('message').textContent = result.message;
+                        window.location.href = '/authorHome.html'; // Redirect to author home page after successful removal
+                    } else {
+                        document.getElementById('message').textContent = result.message;
+                    }
+                } catch (error) {
+                    document.getElementById('message').textContent = 'An error occurred. Please try again.';
+                }
+            });
         }
 
         // Fetch book details on page load
         fetchBookDetails();
     </script>
 </body>
+
 </html>

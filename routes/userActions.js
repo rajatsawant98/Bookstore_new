@@ -1,14 +1,12 @@
 const express = require('express')
 const router = express.Router()
 
-const {buyBook,addReview, updateQuantity, getBookById,
+const {buyBook,addReview, updateQuantity, 
      addToCart, removeFromCart,getCart, checkout, getBooks} = require('../controllers/userControllers');
 const {authenticateToken} = require('../controllers/loginControllers')
 
 
-router.get('/all', getBooks);
-
-router.get('/book/:id', getBookById);
+// router.get('/all', getBooks);
 
 router.post('/buy', authenticateToken, buyBook);
 

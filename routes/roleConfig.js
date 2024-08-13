@@ -13,5 +13,10 @@ module.exports = {
     '/users/cart' :  ['user'],
     '/users/checkout' : ['user'],
     '/users/update-quantity' : ['user'],
-    '/login/verify-token' : ['user']
+    '/login/verify-token' : ['user'],
+    '/authors/addBookAuthor' : ['author'],
+    '/authors/books' : ['author'],
+    '/authors/removeBook' : ['author'],
+    '/authors/book' : ['author']
 };
+
