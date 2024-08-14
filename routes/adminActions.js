@@ -6,7 +6,12 @@ const { addBook, editStock, deleteBook, deleteUser, addAdmin, addAuthor, deleteA
 
 const {authenticateToken} = require('../controllers/loginControllers');
 
-router.post('/addBook', authenticateToken,upload.array('bookPhotos[]', 5), addBook);
+router.post('/addBook', authenticateToken, upload.fields([
+    { name: 'bookPhotos', maxCount: 5 },
+    { name: 'billPhotos', maxCount: 5 },
+    { name: 'previewPhotos', maxCount: 5 }
+]), addBook);
+
 
 router.post('/editStock', authenticateToken, editStock);
 

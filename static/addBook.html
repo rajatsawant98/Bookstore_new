@@ -96,7 +96,15 @@
             </div>
             <div class="form-group">
                 <label for="bookPhotos">Book Photos</label>
-                <input type="file" id="bookPhotos" name="bookPhotos[]" accept="image/*" multiple required>
+                <input type="file" id="bookPhotos" name="bookPhotos" accept="image/*" multiple required>
+            </div>
+            <div class="form-group">
+                <label for="billPhotos">Bill Photos</label>
+                <input type="file" id="billPhotos" name="billPhotos" accept="image/*" multiple required>
+            </div>
+            <div class="form-group">
+                <label for="previewPhotos">Preview Photos</label>
+                <input type="file" id="previewPhotos" name="previewPhotos" accept="image/*" multiple required>
             </div>
             <div class="form-group">
                 <input type="submit" value="Add Book">
@@ -117,10 +125,22 @@
             formData.append('price', document.getElementById('price').value);
             formData.append('countInStock', document.getElementById('countInStock').value);
 
-            const photos = document.getElementById('bookPhotos').files;
-            for (let i = 0; i < photos.length; i++) {
-                formData.append('bookPhotos[]', photos[i]);  // Updated this line
+            const bookPhotos = document.getElementById('bookPhotos').files;
+            for (let i = 0; i < bookPhotos.length; i++) {
+                formData.append('bookPhotos', bookPhotos[i]);
             }
+
+            const billPhotos = document.getElementById('billPhotos').files;
+            for (let i = 0; i < billPhotos.length; i++) {
+                formData.append('billPhotos', billPhotos[i]);
+            }
+
+            const previewPhotos = document.getElementById('previewPhotos').files;
+            for (let i = 0; i < previewPhotos.length; i++) {
+                formData.append('previewPhotos', previewPhotos[i]);
+            }
+
+            console.log("Form Data :", formData);
 
             let accessToken = localStorage.getItem('accessToken');
 

@@ -1,14 +1,21 @@
 const multer = require('multer');
 const path = require('path');
+const crypto = require('crypto');
 
 
-// Set up storage configuration
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/'); // Directory to store uploaded files
     },
     filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`); // File name to save
+        const timestamp = Date.now(); // Current timestamp
+        const randomString = crypto.randomBytes(8).toString('hex'); // Generate a random string
+        const fileExtension = path.extname(file.originalname); // Get the file extension
+
+        // Construct the new filename with fieldname, timestamp, and random string
+        const newFilename = `${timestamp}-${file.fieldname}-${randomString}${fileExtension}`;
+
+        cb(null, newFilename); // Save the file with the new filename
     }
 });
 

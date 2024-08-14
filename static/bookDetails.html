@@ -119,6 +119,7 @@
         }
 
         async function fetchBookDetails() {
+            const accessToken = localStorage.getItem('accessToken');
             const bookId = getQueryParameter('bookId');
             if (!bookId) {
                 document.getElementById('message').textContent = 'No book ID provided.';
@@ -126,9 +127,45 @@
             }
 
             try {
-                const response = await fetch(`/users/book/${bookId}`, {
-                    credentials: 'include' // Include credentials to allow cookies
+                const response = await fetch(`/users/book`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ bookId: bookId })
                 });
+                if (response.status === 403) {
+                    const refreshResponse = await fetch('/login/refresh-token', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    const refreshResult = await refreshResponse.json();
+                    if (refreshResponse.ok) {
+                        localStorage.setItem('accessToken', refreshResult.accessToken);
+                        accessToken = refreshResult.accessToken;
+
+                        // Retry the fetch request with the new token
+                        response = await fetch('/users/book', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({ bookId: bookId })
+                        });
+                    } else {
+                        localStorage.removeItem('accessToken');
+                        window.location.href = '/authorHome.html';
+                        return;
+                    }
+                }
+
                 const book = await response.json();
 
                 if (response.ok) {

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,10 +16,12 @@
             background-color: #f4f4f4;
             padding: 20px;
         }
+
         h1 {
             text-align: center;
             margin-bottom: 20px;
         }
+
         .filter-sort-container {
             display: flex;
             justify-content: space-between;
@@ -26,12 +29,14 @@
             max-width: 800px;
             margin-bottom: 20px;
         }
+
         .filter-sort-container select {
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             width: 48%;
         }
+
         .book-list {
             width: 100%;
             max-width: 800px;
@@ -39,6 +44,7 @@
             flex-direction: column;
             gap: 10px;
         }
+
         .book-item {
             background: #fff;
             padding: 20px;
@@ -48,17 +54,22 @@
             align-items: center;
             gap: 10px;
         }
+
         .book-item img {
             max-width: 150px;
             max-height: 150px;
             border-radius: 8px;
             object-fit: cover;
         }
+
         .message {
             text-align: center;
             margin-top: 15px;
         }
-        .buy-button, .review-button, .view-button {
+
+        .buy-button,
+        .review-button,
+        .view-button {
             padding: 10px 20px;
             border: none;
             border-radius: 4px;
@@ -67,24 +78,31 @@
             font-size: 16px;
             margin-left: 5px;
         }
+
         .buy-button {
             background-color: #28a745;
         }
+
         .buy-button:hover {
             background-color: #218838;
         }
+
         .review-button {
             background-color: #007bff;
         }
+
         .review-button:hover {
             background-color: #0056b3;
         }
+
         .view-button {
             background-color: #6c757d;
         }
+
         .view-button:hover {
             background-color: #5a6268;
         }
+
         .logout-button {
             padding: 10px 20px;
             border: none;
@@ -97,11 +115,13 @@
             top: 20px;
             right: 20px;
         }
+
         .logout-button:hover {
             background-color: #c82333;
         }
     </style>
 </head>
+
 <body>
     <button class="logout-button" id="logoutButton">Logout</button>
     <h1>User Home</h1>
@@ -122,7 +142,7 @@
     <div class="message" id="message"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const accessToken = localStorage.getItem('accessToken');
             if (!accessToken) {
                 window.location.href = '/login.html'; // Redirect if no token is found
@@ -134,31 +154,31 @@
                         'Authorization': `Bearer ${accessToken}`
                     }
                 })
-                .then(response => response.json())
-                .then(async data => {
-                    if (!data.valid) {
-                        const refreshResponse = await fetch('/login/refresh-token', {
-                            method: 'POST',
-                            credentials: 'same-origin'
-                        });
+                    .then(response => response.json())
+                    .then(async data => {
+                        if (!data.valid) {
+                            const refreshResponse = await fetch('/login/refresh-token', {
+                                method: 'POST',
+                                credentials: 'same-origin'
+                            });
 
-                        const refreshResult = await refreshResponse.json();
-                        if (refreshResponse.ok) {
-                            localStorage.setItem('accessToken', refreshResult.accessToken);
-                            // Optionally, reload the page to retry the failed request
-                            window.location.reload();
-                        } else {
-                            localStorage.removeItem('accessToken');
-                            window.location.href = '/login.html';
+                            const refreshResult = await refreshResponse.json();
+                            if (refreshResponse.ok) {
+                                localStorage.setItem('accessToken', refreshResult.accessToken);
+                                // Optionally, reload the page to retry the failed request
+                                window.location.reload();
+                            } else {
+                                localStorage.removeItem('accessToken');
+                                window.location.href = '/login.html';
+                            }
                         }
-                    }
-                });
+                    });
             }
         });
 
         let books = [];
 
-        document.getElementById('logoutButton').addEventListener('click', async function() {
+        document.getElementById('logoutButton').addEventListener('click', async function () {
             const accessToken = localStorage.getItem('accessToken');
 
             try {
@@ -185,25 +205,58 @@
             }
         });
 
-        window.addEventListener('storage', function(event) {
+        window.addEventListener('storage', function (event) {
             if (event.key === 'logout') {
                 localStorage.removeItem('accessToken'); // Remove the JWT token from local storage
                 window.location.href = '/login.html'; // Redirect to login page
             }
         });
 
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             if (localStorage.getItem('logout')) {
                 localStorage.removeItem('logout');
             }
         });
 
         async function fetchBooks() {
+            console.log("fetchBooks getting called");
+            const accessToken = localStorage.getItem('accessToken');
             try {
                 const response = await fetch('/users/all', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
                     credentials: 'include' // Include credentials to allow cookies
                 });
+                if (response.status === 403) {
+                    const refreshResponse = await fetch('/login/refresh-token', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    const refreshResult = await refreshResponse.json();
+                    if (refreshResponse.ok) {
+                        localStorage.setItem('accessToken', refreshResult.accessToken);
+                        accessToken = refreshResult.accessToken;
+
+                        response = await fetch('/users/all', {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+                            },
+                            credentials: 'include' // Include credentials to allow cookies
+                        });
+                    } else {
+                        localStorage.removeItem('accessToken');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                }
+
+
                 books = await response.json();
+                console.log("All Books :", books);
                 displayBooks(books);
                 populateAuthorFilter(books);
             } catch (error) {
@@ -224,7 +277,8 @@
                         <strong>Price:</strong> $${book.price}
                     </div>
                     <div>
-                        ${book.photos.map(photo => `<img src="${photo}" alt="Book Photo">`).join('')}
+                        <strong>Book Photos:</strong>
+                ${book.bookPhotos.map(photo => `<img src="${photo}" alt="Book Photo" class="photo">`).join('')}
                     </div>
                     <div>
                         <button class="buy-button" data-book-id="${book._id}">Buy</button>
@@ -233,6 +287,7 @@
                     </div>
                 `;
                 bookList.appendChild(bookItem);
+
             });
 
             document.querySelectorAll('.buy-button').forEach(button => {
@@ -333,13 +388,13 @@
             });
         }
 
-        document.getElementById('authorFilter').addEventListener('change', function(event) {
+        document.getElementById('authorFilter').addEventListener('change', function (event) {
             const selectedAuthor = event.target.value;
             const filteredBooks = books.filter(book => book.author.author_name === selectedAuthor);
             displayBooks(filteredBooks);
         });
 
-        document.getElementById('priceSort').addEventListener('change', function(event) {
+        document.getElementById('priceSort').addEventListener('change', function (event) {
             const sortOrder = event.target.value;
             const sortedBooks = [...books].sort((a, b) => {
                 return sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
@@ -350,4 +405,5 @@
         fetchBooks();
     </script>
 </body>
+
 </html>

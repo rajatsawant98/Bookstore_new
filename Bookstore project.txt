@@ -35,3 +35,7 @@ Case 1: Image File: A user uploads an image file named picture.jpg.
 The MIME type is checked and found to be image/jpeg, so the file is accepted.
 Case 2: Malicious File: A user uploads a file named script.jpg that is actually a malicious script.
 The MIME type is checked and found to be application/javascript (or something other than image/jpeg), so the file is rejected
+
+3 different functionalities where we upload file.
+
+rename the file

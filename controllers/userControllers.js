@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const TokenBlacklist = require('../Models/blacklist');
 
 
-
 const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
 
 
@@ -231,6 +230,22 @@ async function updateQuantity(req, res) {
 }
 
 
+async function getBookById(req, res) {
+    try {
+        const { bookId } = req.body;
+
+        // Find books by the id
+        const books = await Book.findById(bookId);
+
+        // Return the books to the client
+        res.json(books);
+    } catch (error) {
+        console.error('Error fetching books:', error);
+        res.status(500).json({ message: 'An error occurred while fetching books.' });
+    }
+}
+
+
 
 module.exports = {
     updateQuantity,
@@ -238,5 +253,5 @@ module.exports = {
     addReview,
     addToCart,
     removeFromCart,
-    getCart, checkout
+    getCart, checkout,getBookById
 };

@@ -3,8 +3,7 @@ const express = require('express');
 const path = require('path')
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const db = require('./db'); 
-const cronJobs = require('./cronJobs'); 
+const db = require('./db');
 
 const app = express()
 app.use('/', express.static(path.join(__dirname, 'static')))

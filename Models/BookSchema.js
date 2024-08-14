@@ -1,9 +1,9 @@
 const mongoose = require('mongoose')
 
 const reviewSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: true 
+    user: { type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
     rating: { type: Number, 
         required: true, 
@@ -50,7 +50,15 @@ const bookSchema = new mongoose.Schema({
         default : 0
     },
     reviews: [reviewSchema],
-    photos: [{ 
+    bookPhotos: [{
+        type: String,
+        required: false
+    }],
+    billPhotos: [{
+        type: String,
+        required: false
+    }],
+    previewPhotos: [{
         type: String,
         required: false
     }]

@@ -6,6 +6,8 @@ module.exports = {
     '/admins/admin' : ['SuperAdmin'],
     '/admins/addAuthor' : ['SuperAdmin', 'Librarian'],
     '/admins/deleteAuthor' : ['SuperAdmin', 'Librarian'],
+    '/users/all' : ['user'],
+    '/users/book' : ['user'],
     '/users/buy' : ['user'],
     '/users/review' : ['user'],
     '/users/add-to-cart' : ['user'],

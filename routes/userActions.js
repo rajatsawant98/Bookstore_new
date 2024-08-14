@@ -2,9 +2,12 @@ const express = require('express')
 const router = express.Router()
 
 const {buyBook,addReview, updateQuantity, 
-     addToCart, removeFromCart,getCart, checkout, getBooks} = require('../controllers/userControllers');
+     addToCart, removeFromCart,getCart, checkout,getBookById, getBooks} = require('../controllers/userControllers');
 const {authenticateToken} = require('../controllers/loginControllers')
 
+router.get('/all', authenticateToken, getBooks)
+
+router.post('/book', authenticateToken, getBookById);
 
 router.post('/buy', authenticateToken, buyBook);
 

@@ -6,12 +6,16 @@ const jwt = require('jsonwebtoken');
 const roleConfig = require('../routes/roleConfig');
 
 
-
 async function addBook(req, res) {
     console.log("addBook getting called");
-    const { isbn, book_name, genre, price, isSold, countInStock, author_name } = req.body; 
-    const photos = req.files ? req.files.map(file => file.path) : [];
-
+    console.log("Body :", req.body);
+    console.log("Files :", req.files);
+    const { isbn, book_name, genre, price, isSold, countInStock, author_name } = req.body;
+    
+    // Accessing and mapping each file field separately
+    const bookPhotos = req.files['bookPhotos'] ? req.files['bookPhotos'].map(file => file.path) : [];
+    const billPhotos = req.files['billPhotos'] ? req.files['billPhotos'].map(file => file.path) : [];
+    const previewPhotos = req.files['previewPhotos'] ? req.files['previewPhotos'].map(file => file.path) : [];
 
     try {
         const author = await Author.findOne({ author_name });
@@ -28,7 +32,9 @@ async function addBook(req, res) {
             price,
             isSold,
             countInStock,
-            photos
+            bookPhotos,
+            billPhotos,
+            previewPhotos
         });
 
         const savedBook = await book.save();
@@ -38,6 +44,8 @@ async function addBook(req, res) {
         res.status(500).json({ message: 'Error in addBook function', error: err.message });
     }
 }
+
+
 
 
 async function editStock(req, res){
