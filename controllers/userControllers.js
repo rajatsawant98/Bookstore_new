@@ -10,8 +10,10 @@ const JWT_SECRET = 'cldsjvndafkjvjh^%$%#kjbkjkl98787'
 
 
 async function getBooks(req, res) {
+    console.log("users/all -- GetBooks getting called!!");
     try {
         const books = await Book.find().populate('author'); // Populate author details if needed
+        console.log("Success getting books");
         res.json(books);
     } catch (error) {
         console.error(error);

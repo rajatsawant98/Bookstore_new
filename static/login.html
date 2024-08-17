@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
             margin: 0;
             background-color: #f4f4f4;
         }
+
         .login-container {
             background: #fff;
             padding: 20px;
@@ -23,38 +25,46 @@
             max-width: 400px;
             width: 100%;
         }
+
         h1 {
             text-align: center;
             margin-bottom: 20px;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
         }
+
         .form-group input {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+
         .form-group input[type="submit"] {
             background-color: #007bff;
             color: white;
             border: none;
             cursor: pointer;
         }
+
         .form-group input[type="submit"]:hover {
             background-color: #0056b3;
         }
+
         .message {
             text-align: center;
             margin-top: 15px;
         }
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <h1>Login</h1>
@@ -75,67 +85,36 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
 
-    try {
-        const response = await fetch('/login/userlogin', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-            credentials: 'same-origin'
+            try {
+                const response = await fetch('/login/userlogin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                    credentials: 'include'
+                });
+
+
+                const result = await response.json();
+                if (response.ok) {
+                    const userhomeWindow = window.open('/userhome.html');
+                    userhomeWindow.onload = function () {
+                        userhomeWindow.postMessage(result.accessToken, window.location.origin);
+                    };
+                } else {
+                    document.getElementById('message').textContent = result.message;
+                }
+            } catch (error) {
+                document.getElementById('message').textContent = 'An error occurred. Please try again.';
+            }
         });
 
-        const result = await response.json();
-        if (response.ok) {
-            localStorage.setItem('accessToken', result.accessToken);
-            document.getElementById('message').textContent = result.message;
-            window.location.href = '/userhome.html'; // Redirect to homepage on successful login
-        } else {
-            document.getElementById('message').textContent = result.message;
-        }
-    } catch (error) {
-        document.getElementById('message').textContent = 'An error occurred. Please try again.';
-    }
-});
-
-// document.addEventListener('DOMContentLoaded', function() {
-//     const accessToken = localStorage.getItem('accessToken');
-//     if (!accessToken) {
-//         window.location.href = '/login.html'; // Redirect if no token is found
-//     } else {
-//         fetch('/verify-token', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'Authorization': `Bearer ${accessToken}`
-//             }
-//         })
-//         .then(response => response.json())
-//         .then(async data => {
-//             if (!data.valid) {
-//                 const refreshResponse = await fetch('/refresh-token', {
-//                     method: 'POST',
-//                     credentials: 'same-origin'
-//                 });
-
-//                 const refreshResult = await refreshResponse.json();
-//                 if (refreshResponse.ok) {
-//                     localStorage.setItem('accessToken', refreshResult.accessToken);
-//                     // Optionally, reload the page to retry the failed request
-//                     window.location.reload();
-//                 } else {
-//                     localStorage.removeItem('accessToken');
-//                     window.location.href = '/login.html';
-//                 }
-//             }
-//         });
-//     }
-// });
     </script>
 </body>
 </html>

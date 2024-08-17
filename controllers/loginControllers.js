@@ -94,7 +94,7 @@ async function userLogin(req, res) {
             secure: false, // Set to true if using HTTPS
             sameSite: 'strict'
         });
-
+        console.log('User Login successfully');
         return res.status(201).json({ message: 'User Login successfully', accessToken });
     } else {
         return res.status(400).json({ message: 'Invalid username/password' });
@@ -105,24 +105,24 @@ async function logout(req, res) {
     try {
         console.log("Logout Getting called");
         const refreshToken = req.cookies.refreshToken;
-        const accessToken = req.headers['authorization']?.split(' ')[1];
+        // const accessToken = req.headers['authorization']?.split(' ')[1];
 
-        if (!refreshToken || !accessToken) {
+        if (!refreshToken ) {
             return res.status(400).json({ message: 'No tokens provided' });
         }
 
         // Decode tokens to get their expiration times
         const decodedRefreshToken = jwt.decode(refreshToken);
-        const decodedAccessToken = jwt.decode(accessToken);
+        // const decodedAccessToken = jwt.decode(accessToken);
 
         // Check if decoding was successful and exp field exists
         if (!decodedRefreshToken || !decodedRefreshToken.exp) {
             return res.status(400).json({ message: 'Invalid refresh token' });
         }
 
-        if (!decodedAccessToken || !decodedAccessToken.exp) {
-            return res.status(400).json({ message: 'Invalid access token' });
-        }
+        // if (!decodedAccessToken || !decodedAccessToken.exp) {
+        //     return res.status(400).json({ message: 'Invalid access token' });
+        // }
 
         // Add tokens to blacklist
         await TokenBlacklist.create({
@@ -130,14 +130,16 @@ async function logout(req, res) {
             expiresAt: new Date(decodedRefreshToken.exp * 1000)
         });
 
-        await TokenBlacklist.create({
-            token: accessToken,
-            expiresAt: new Date(decodedAccessToken.exp * 1000)
-        });
+        // await TokenBlacklist.create({
+        //     token: accessToken,
+        //     expiresAt: new Date(decodedAccessToken.exp * 1000)
+        // });
 
         // Clear cookies
         res.clearCookie('refreshToken');
-        res.clearCookie('userId');
+        // res.clearCookie('userId');
+
+        console.log("Logout Successful");
 
         return res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
@@ -147,7 +149,7 @@ async function logout(req, res) {
 
 async function authorLogout(req, res) {
     try {
-        console.log("Logout Getting called");
+        console.log("authorLogout Getting called");
         const refreshToken = req.cookies.refreshToken;
         // console.log("RefresToken :", refreshToken);
         const accessToken = req.headers['authorization']?.split(' ')[1];
@@ -207,27 +209,29 @@ async function refreshToken(req, res) {
 }
 
 
-
-
 async function authenticateToken(req, res, next) {
     console.log("authenticateToken getting called");
     const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
+        console.log("No token");
         return res.status(401).json({ message: 'Access denied. No token provided.' });
     }
 
     // Check if token is blacklisted
     const blacklistedToken = await TokenBlacklist.findOne({ token });
     if (blacklistedToken) {
+        console.log("Blacklisted");
         return res.status(403).json({ message: 'Token in blacklist. Invalid token.' });
     }
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
+            console.log("Invalid Token");
             return res.status(403).json({ message: 'Invalid token.' });
         }
 
+        console.log("Token valid");
         req.user = user;
 
         const path = req.originalUrl; // Get the path of the current route
@@ -243,8 +247,6 @@ async function authenticateToken(req, res, next) {
         next();
     });
 }
-
-
 
 
 async function authorLogin(req, res) {

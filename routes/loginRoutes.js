@@ -13,9 +13,10 @@ router.post('/authorLogout', authorLogout);
 
 router.post('/refresh-token', refreshToken);
 
-router.post('/verify-token', authenticateToken, (req, res) => {
-    res.json({ valid: true });
-});
+// router.post('/verify-token', authenticateToken, (req, res) => {
+//     console.log("Verify-Token getting called!!");
+//     res.json({ valid: true });
+// });
 
 router.post('/authorLogin', authorLogin);
 

@@ -143,20 +143,27 @@
 
     <script>
         let accessToken = '';
-        let books = []; // Global variable to store books
 
         window.addEventListener('message', function (event) {
+            console.log("in trigger");
             if (event.origin === window.location.origin) {
-                accessToken = event.data;
+                const accessToken = event.data;
 
                 if (!accessToken) {
                     window.location.href = '/login.html'; // Redirect to login if no token
                 } else {
+                    // Use the token to make authenticated requests
+                    console.log('Access Token in trigger :', accessToken);
                     fetchBooks(accessToken);
+
                 }
+
             }
         });
 
+        // console.log("accessToken in global: ", accessToken);
+
+        // Call refreshToken when the page loads or refreshes
         window.addEventListener('load', async function () {
             if (!accessToken) {
                 try {
@@ -166,34 +173,38 @@
                     window.location.href = '/login.html'; // Redirect to login if refresh fails
                 }
             } else {
-                fetchBooks(accessToken);
+                fetchBooks(accessToken); // Continue if token is already set
             }
         });
 
         async function refreshToken() {
             try {
+                console.log("Requesting new access token");
                 const refreshResponse = await fetch('/login/refresh-token', {
                     method: 'POST',
-                    credentials: 'include'
+                    credentials: 'include' // Send cookies with the request
                 });
 
                 if (refreshResponse.ok) {
                     const refreshResult = await refreshResponse.json();
                     accessToken = refreshResult.accessToken;
-                    fetchBooks(accessToken);
+                    fetchBooks(accessToken); // Fetch books with the new access token
                 } else {
                     const result = await refreshResponse.json();
                     throw new Error(result.message);
                 }
             } catch (error) {
                 console.error('Failed to refresh token:', error);
-                throw error;
+                throw error; // Re-throw to handle it in the `load` event
             }
         }
 
-        async function fetchBooks(accessToken) {
+
+
+        document.getElementById('logoutButton').addEventListener('click', async function () {
             try {
-                let response = await fetch('/users/all', {
+                const response = await fetch('/login/logout', {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${accessToken}`
@@ -201,7 +212,45 @@
                     credentials: 'include'
                 });
 
+                if (response.ok) {
+                    localStorage.removeItem('accessToken'); // Remove the JWT token from local storage
+                    localStorage.setItem('logout', Date.now()); // Set a special item to notify other tabs
+                    window.location.href = '/login.html'; // Redirect to login page
+                } else {
+                    const result = await response.json();
+                    console.log(result);
+                    alert('Error logging out: ' + result.message);
+                }
+            } catch (error) {
+                alert('An error occurred. Please try again.');
+            }
+        });
+
+        window.addEventListener('storage', function (event) {
+            if (event.key === 'logout') {
+                window.location.href = '/login.html'; // Redirect to login page
+            }
+        });
+
+        window.addEventListener('load', function () {
+            if (localStorage.getItem('logout')) {
+                localStorage.removeItem('logout');
+            }
+        });
+
+        async function fetchBooks(accessToken) {
+            console.log("fetchBooks getting called");
+            try {
+                console.log("In fetchbooks 2 ");
+                let response = await fetch('/users/all', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    credentials: 'include' // Include credentials to allow cookies   
+                });
                 if (response.status === 403) {
+                    console.log("in refresh block");
                     const refreshResponse = await fetch('/login/refresh-token', {
                         method: 'POST',
                         credentials: 'include'
@@ -209,6 +258,7 @@
 
                     const refreshResult = await refreshResponse.json();
                     if (refreshResponse.ok) {
+                        localStorage.setItem('accessToken', refreshResult.accessToken);
                         accessToken = refreshResult.accessToken;
 
                         response = await fetch('/users/all', {
@@ -216,16 +266,18 @@
                                 'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${accessToken}`
                             },
-                            credentials: 'include'
+                            credentials: 'include' // Include credentials to allow cookies
                         });
                     } else {
+                        localStorage.removeItem('accessToken');
                         window.location.href = '/login.html';
                         return;
                     }
                 }
 
                 if (response.ok) {
-                    books = await response.json(); // Assign books to the global variable
+                    const books = await response.json();
+                    console.log("All Books :", books);
                     displayBooks(books);
                     populateAuthorFilter(books);
                 } else {
@@ -275,48 +327,66 @@
             });
         }
 
-        document.getElementById('authorFilter').addEventListener('change', function (event) {
-            const selectedAuthor = event.target.value;
-            const filteredBooks = selectedAuthor ? books.filter(book => book.author.author_name === selectedAuthor) : books;
-            displayBooks(filteredBooks); // Display filtered books
-        });
-
-        document.getElementById('priceSort').addEventListener('change', function (event) {
-            const sortOrder = event.target.value;
-            const sortedBooks = [...books].sort((a, b) => {
-                return sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
-            });
-            displayBooks(sortedBooks); // Display sorted books
-        });
-
-        function populateAuthorFilter(books) {
-            const authorFilter = document.getElementById('authorFilter');
-            const authors = [...new Set(books.map(book => book.author.author_name))];
-            authors.forEach(author => {
-                const option = document.createElement('option');
-                option.value = author;
-                option.textContent = author;
-                authorFilter.appendChild(option);
-            });
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
         }
 
         async function buyBook(event) {
-            const bookId = event.target.getAttribute('data-book-id');
+            console.log("buyBook in client getting called");
+            const button = event.target;
+            const bookId = button.getAttribute('data-book-id');
+
             try {
-                const response = await fetch(`/buy/${bookId}`, {
+                console.log("Calling users buy");
+                let response = await fetch('/users/buy', {
                     method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${accessToken}`
-                    }
+                    },
+                    body: JSON.stringify({ userId, bookId }),
+                    credentials: 'include'
                 });
+
+                // If the token is invalid, try to refresh it
+                if (response.status === 403) {
+                    const refreshResponse = await fetch('/login/refresh-token', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    const refreshResult = await refreshResponse.json();
+                    if (refreshResponse.ok) {
+                        localStorage.setItem('accessToken', refreshResult.accessToken);
+                        accessToken = refreshResult.accessToken;
+
+                        response = await fetch('/users/buy', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+                            },
+                            body: JSON.stringify({ userId, bookId }),
+                            credentials: 'include'
+                        });
+                    } else {
+                        localStorage.removeItem('accessToken');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                }
+
                 if (response.ok) {
-                    alert('Book purchased successfully!');
+                    const result = await response.json();
+                    alert(result.message || 'Book purchased successfully');
                 } else {
                     const result = await response.json();
-                    alert('Failed to purchase book: ' + result.message);
+                    alert(result.message || 'Error purchasing book');
                 }
             } catch (error) {
-                console.error('Error purchasing book:', error);
+                alert('An error occurred. Please try again.');
             }
         }
 
@@ -330,24 +400,36 @@
             window.location.href = `/bookDetails.html?bookId=${bookId}`;
         }
 
-        document.getElementById('logoutButton').addEventListener('click', async function () {
-            try {
-                const response = await fetch('/login/logout', {
-                    method: 'POST',
-                    credentials: 'include'
-                });
+        function populateAuthorFilter(books) {
+            const authorFilter = document.getElementById('authorFilter');
+            const authors = [...new Set(books.map(book => book.author.author_name))];
+            authors.forEach(author => {
+                const option = document.createElement('option');
+                option.value = author;
+                option.textContent = author;
+                authorFilter.appendChild(option);
+            });
+        }
 
-                if (response.ok) {
-                    window.location.href = '/login.html';
-                } else {
-                    alert('Failed to log out.');
-                }
-            } catch (error) {
-                console.error('Logout error:', error);
-                alert('An error occurred during logout.');
-            }
+        document.getElementById('authorFilter').addEventListener('change', function (event) {
+            const selectedAuthor = event.target.value;
+            const filteredBooks = books.filter(book => book.author.author_name === selectedAuthor);
+            displayBooks(filteredBooks);
         });
+
+        document.getElementById('priceSort').addEventListener('change', function (event) {
+            const sortOrder = event.target.value;
+            const sortedBooks = [...books].sort((a, b) => {
+                return sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
+            });
+            displayBooks(sortedBooks);
+        });
+
+
+
+        // Call fetchBooks function without passing accessToken
     </script>
+
 </body>
 
 </html>
