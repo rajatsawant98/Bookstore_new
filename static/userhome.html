@@ -301,13 +301,27 @@
         }
 
         async function buyBook(event) {
+            const refreshResponse = await fetch('/login/refresh-token', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (refreshResponse.ok) {
+                    const refreshResult = await refreshResponse.json();
+                    accessToken = refreshResult.accessToken;
+                }
             const bookId = event.target.getAttribute('data-book-id');
+            console.log("BookId in buybook :", bookId);
+            console.log("AccesToken in buyBook :", accessToken);
             try {
-                const response = await fetch(`/buy/${bookId}`, {
+                console.log("Hitting API with bookID :", bookId);
+                const response = await fetch('/users/buy', {
                     method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${accessToken}`
-                    }
+                    },
+                    body: JSON.stringify({ bookId })
                 });
                 if (response.ok) {
                     alert('Book purchased successfully!');
@@ -349,5 +363,4 @@
         });
     </script>
 </body>
-
 </html>
